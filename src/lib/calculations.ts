@@ -329,7 +329,9 @@ export async function getProgressChartData(): Promise<
     where: { date: { in: days } },
   });
   const limitsMap = new Map<string, number>();
-  limits.forEach((l: { date: string; limitCigs: { toNumber: () => number } }) => limitsMap.set(l.date, l.limitCigs.toNumber()));
+  limits.forEach((l: { date: string; limitCigs: { toNumber: () => number } }) =>
+    limitsMap.set(l.date, l.limitCigs.toNumber()),
+  );
 
   const config = await getSystemConfig();
   const defaultLimit = config.defaultDailyLimit.toNumber();
