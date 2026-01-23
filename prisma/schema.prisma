@@ -1,0 +1,183 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum RedemptionStatus {
+  PENDING
+  VALIDATED
+  REJECTED
+}
+
+enum MissionType {
+  DAILY
+  WEEKLY
+}
+
+enum MissionStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  name          String
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  cigRequests       CigRequest[]
+  xpLedger          XpLedger[]
+  rewardRedemptions RewardRedemption[]
+  userMissions      UserMission[]
+}
+
+// Meta diária de cigarros (configurada pelo admin)
+model DayLimit {
+  id        String   @id @default(cuid())
+  date      String   // YYYY-MM-DD no fuso de Brasília
+  limitCigs Decimal  @db.Decimal(3, 1) // ex: 3.5
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([date])
+}
+
+// Pedido de cigarro feito pelo usuário
+model CigRequest {
+  id         String        @id @default(cuid())
+  userId     String
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime      @default(now())
+  amount     Decimal       @db.Decimal(2, 1) // 0.5 ou 1.0
+  reason1    String
+  reason2    String
+  status     RequestStatus @default(PENDING)
+  approvedAt DateTime?
+  dateBr     String        // YYYY-MM-DD para facilitar queries por dia
+
+  @@index([userId])
+  @@index([dateBr])
+  @@index([status])
+}
+
+// Ledger de XP (auditável)
+model XpLedger {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  delta     Int      // positivo = ganho, negativo = gasto
+  type      String   // "daily_bonus", "mission", "extra_penalty", "reward_purchase"
+  refId     String?  // referência opcional (ex: id da missão, recompensa, etc)
+  note      String?  // nota opcional
+
+  @@index([userId])
+  @@index([type])
+}
+
+// Recompensa disponível na loja
+model Reward {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  costXp      Int
+  dailyLimit  Int      @default(1) // limite de resgates por dia por usuário
+  active      Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  redemptions RewardRedemption[]
+}
+
+// Resgate de recompensa pelo usuário
+model RewardRedemption {
+  id          String           @id @default(cuid())
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rewardId    String
+  reward      Reward           @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+  createdAt   DateTime         @default(now())
+  status      RedemptionStatus @default(PENDING)
+  validatedAt DateTime?
+  dateBr      String           // YYYY-MM-DD para controle de limite diário
+
+  @@index([userId])
+  @@index([rewardId])
+  @@index([dateBr])
+}
+
+// Definição de missões
+model Mission {
+  id          String      @id @default(cuid())
+  title       String
+  description String
+  type        MissionType
+  xpReward    Int
+  targetValue Decimal?    @db.Decimal(4, 1) // meta numérica se aplicável
+  condition   String      // identificador da condição: "daily_under_limit", "weekly_reduction", etc
+  active      Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  userMissions UserMission[]
+}
+
+// Missão atribuída a um usuário
+model UserMission {
+  id           String        @id @default(cuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  missionId    String
+  mission      Mission       @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  status       MissionStatus @default(IN_PROGRESS)
+  progress     Decimal       @default(0) @db.Decimal(4, 1) // progresso atual
+  startDate    String        // YYYY-MM-DD
+  endDate      String        // YYYY-MM-DD
+  completedAt  DateTime?
+  xpAwarded    Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([startDate])
+}
+
+// Lista de motivos disponíveis para pedidos
+model Reason {
+  id        String   @id @default(cuid())
+  text      String
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+// Configurações gerais do sistema
+model SystemConfig {
+  id                  String   @id @default(cuid())
+  weeklyReductionPct  Decimal  @default(10) @db.Decimal(4, 1) // % de redução semanal
+  defaultDailyLimit   Decimal  @default(3.5) @db.Decimal(3, 1)
+  extraCost05         Int      @default(12) // XP para 0.5 extra
+  extraCost10         Int      @default(20) // XP para 1.0 extra
+  updatedAt           DateTime @updatedAt
+}
