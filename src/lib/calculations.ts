@@ -41,8 +41,8 @@ export async function getTotalsForDays(
   });
 
   const totals = new Map<string, number>();
-  days.forEach((d) => totals.set(d, 0)); // inicializa todos com 0
-  results.forEach((r) => {
+  days.forEach((d: string) => totals.set(d, 0)); // inicializa todos com 0
+  results.forEach((r: { dateBr: string; _sum: { amount: Decimal | null } }) => {
     totals.set(r.dateBr, r._sum.amount?.toNumber() ?? 0);
   });
   return totals;

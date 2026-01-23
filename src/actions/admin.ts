@@ -12,6 +12,7 @@ import {
 import { addXp, getTotalForDay, getDayLimit } from "@/lib/calculations";
 import { revalidatePath } from "next/cache";
 import type { Prisma } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
 
 type CigRequestWithUser = Prisma.CigRequestGetPayload<{
   include: { user: { select: { name: true } } };
