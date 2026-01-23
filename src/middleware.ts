@@ -1,23 +1,23 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { auth } from "@/lib/auth";
+import { getToken } from "next-auth/jwt";
 
 export default async function middleware(request: NextRequest) {
-  const session = await auth();
+  const token = await getToken({ req: request });
   const { pathname } = request.nextUrl;
 
   // Rotas públicas
   if (pathname === "/login" || pathname === "/") {
-    if (session) {
+    if (token) {
       // Redireciona usuário logado para a área correta
-      const redirectUrl = session.user.role === "ADMIN" ? "/admin" : "/app";
+      const redirectUrl = token.role === "ADMIN" ? "/admin" : "/app";
       return NextResponse.redirect(new URL(redirectUrl, request.url));
     }
     return NextResponse.next();
   }
 
   // Rotas protegidas - requer login
-  if (!session) {
+  if (!token) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
@@ -29,7 +29,7 @@ export default async function middleware(request: NextRequest) {
 
   // Rotas do admin - /admin/*
   if (pathname.startsWith("/admin")) {
-    if (session.user.role !== "ADMIN") {
+    if (token.role !== "ADMIN") {
       return NextResponse.redirect(new URL("/app", request.url));
     }
     return NextResponse.next();
