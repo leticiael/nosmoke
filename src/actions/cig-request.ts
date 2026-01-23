@@ -105,15 +105,20 @@ export async function getPendingRequests() {
   return requests;
 }
 
-export async function getExtraPreview(amount: string) {
+export async function getExtraPreview(amount: string): Promise<{
+  isExtra: boolean;
+  xpCost: number;
+  userXp: number;
+  canAfford: boolean;
+} | null> {
   const session = await auth();
   if (!session?.user?.id) {
-    return { isExtra: false, xpCost: 0 };
+    return null;
   }
 
   const amountNum = parseFloat(amount);
   if (isNaN(amountNum)) {
-    return { isExtra: false, xpCost: 0 };
+    return null;
   }
 
   const today = todayBrasilia();

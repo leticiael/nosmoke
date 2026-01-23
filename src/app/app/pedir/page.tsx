@@ -61,7 +61,7 @@ export default function PedirPage() {
   // Verifica se é extra quando muda a quantidade
   useEffect(() => {
     if (amount) {
-      getExtraPreview(amount).then(setExtraInfo);
+      getExtraPreview(amount).then((info) => setExtraInfo(info));
     } else {
       setExtraInfo(null);
     }
