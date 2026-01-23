@@ -11,7 +11,20 @@ import {
 } from "@/lib/validations";
 import { addXp, getTotalForDay, getDayLimit } from "@/lib/calculations";
 import { revalidatePath } from "next/cache";
-import { Decimal } from "@prisma/client/runtime/library";
+import type { Prisma } from "@prisma/client";
+
+type CigRequestWithUser = Prisma.CigRequestGetPayload<{
+  include: { user: { select: { name: true } } };
+}>;
+
+type RedemptionWithUserAndReward = Prisma.RewardRedemptionGetPayload<{
+  include: {
+    user: { select: { name: true } };
+    reward: { select: { title: true; costXp: true } };
+  };
+}>;
+
+type DayLimitRecord = Prisma.DayLimitGetPayload<object>;
 
 // Verifica se o usuário é admin
 async function requireAdmin() {
@@ -31,7 +44,7 @@ export async function getPendingRequestsAdmin() {
     orderBy: { createdAt: "asc" },
   });
 
-  return requests.map((r) => ({
+  return requests.map((r: CigRequestWithUser) => ({
     id: r.id,
     userName: r.user.name,
     amount: r.amount.toNumber(),
@@ -125,7 +138,7 @@ export async function getPendingRedemptionsAdmin() {
     orderBy: { createdAt: "asc" },
   });
 
-  return redemptions.map((r) => ({
+  return redemptions.map((r: RedemptionWithUserAndReward) => ({
     id: r.id,
     userName: r.user.name,
     rewardTitle: r.reward.title,
@@ -214,7 +227,7 @@ export async function getHistoryAdmin(page: number = 1, limit: number = 20) {
   ]);
 
   return {
-    requests: requests.map((r) => ({
+    requests: requests.map((r: CigRequestWithUser) => ({
       id: r.id,
       userName: r.user.name,
       amount: r.amount.toNumber(),
@@ -339,7 +352,7 @@ export async function getDayLimitsAdmin() {
     take: 14,
   });
 
-  return limits.map((l) => ({
+  return limits.map((l: DayLimitRecord) => ({
     date: l.date,
     limit: l.limitCigs.toNumber(),
   }));

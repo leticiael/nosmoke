@@ -1,4 +1,4 @@
-import { PrismaClient, Role, MissionType } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -25,7 +25,7 @@ async function main() {
       email: "leticia@nosmoke.app",
       passwordHash: adminPassword,
       name: "Leticia",
-      role: Role.ADMIN,
+      role: "ADMIN",
     },
   });
   console.log("✅ Admin criado:", admin.email);
@@ -37,7 +37,7 @@ async function main() {
       email: "leo@nosmoke.app",
       passwordHash: userPassword,
       name: "Leo",
-      role: Role.USER,
+      role: "USER",
     },
   });
   console.log("✅ Usuário criado:", user.email);
@@ -108,7 +108,7 @@ async function main() {
       data: {
         title: "Dia dentro da meta",
         description: "Fique dentro da meta diária",
-        type: MissionType.DAILY,
+        type: "DAILY",
         xpReward: 15,
         condition: "daily_under_limit",
       },
@@ -117,7 +117,7 @@ async function main() {
       data: {
         title: "Abaixo de 3",
         description: "Consuma menos de 3 cigarros hoje",
-        type: MissionType.DAILY,
+        type: "DAILY",
         xpReward: 25,
         targetValue: 3.0,
         condition: "daily_under_value",
@@ -127,7 +127,7 @@ async function main() {
       data: {
         title: "Sem extras",
         description: "Não peça nenhum cigarro extra hoje",
-        type: MissionType.DAILY,
+        type: "DAILY",
         xpReward: 20,
         condition: "no_extras",
       },
@@ -137,7 +137,7 @@ async function main() {
       data: {
         title: "Semana campeã",
         description: "Fique dentro da meta em 5 dos 7 dias",
-        type: MissionType.WEEKLY,
+        type: "WEEKLY",
         xpReward: 50,
         targetValue: 5,
         condition: "weekly_days_under_limit",
@@ -147,7 +147,7 @@ async function main() {
       data: {
         title: "Redução real",
         description: "Média semanal menor que a semana anterior",
-        type: MissionType.WEEKLY,
+        type: "WEEKLY",
         xpReward: 75,
         condition: "weekly_reduction",
       },

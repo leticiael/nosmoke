@@ -11,6 +11,12 @@ import {
   getRedemptionCountToday,
 } from "@/lib/calculations";
 import { revalidatePath } from "next/cache";
+import type { Prisma } from "@prisma/client";
+
+type RewardRecord = Prisma.RewardGetPayload<object>;
+type RedemptionWithReward = Prisma.RewardRedemptionGetPayload<{
+  include: { reward: { select: { title: true } } };
+}>;
 
 export async function getRewardsWithStatus() {
   const session = await auth();
@@ -26,11 +32,9 @@ export async function getRewardsWithStatus() {
     getUserXp(session.user.id),
   ]);
 
-  const today = todayBrasilia();
-
   // Verifica resgates de hoje para cada recompensa
   const rewardsWithStatus = await Promise.all(
-    rewards.map(async (reward) => {
+    rewards.map(async (reward: RewardRecord) => {
       const redemptionsToday = await getRedemptionCountToday(
         session.user.id,
         reward.id,
@@ -140,7 +144,7 @@ export async function getUserRedemptions() {
     take: 10,
   });
 
-  return redemptions.map((r) => ({
+  return redemptions.map((r: RedemptionWithReward) => ({
     id: r.id,
     rewardTitle: r.reward.title,
     status: r.status,
