@@ -48,7 +48,7 @@ async function main() {
       data: {
         title: "Massagem relaxante 15min",
         description: "Uma massagem de 15 minutos para relaxar",
-        costXp: 30,
+        costXp: 70,
         dailyLimit: 1,
         sortOrder: 1,
       },
@@ -57,7 +57,7 @@ async function main() {
       data: {
         title: "Voucher especial",
         description: "Um voucher surpresa escolhido pela admin",
-        costXp: 190,
+        costXp: 150,
         dailyLimit: 1,
         sortOrder: 2,
       },
@@ -76,7 +76,7 @@ async function main() {
       data: {
         title: "Jogar cassino",
         description: "Uma sessão de jogos no cassino",
-        costXp: 600,
+        costXp: 800,
         dailyLimit: 1,
         sortOrder: 4,
       },
@@ -118,7 +118,7 @@ async function main() {
         title: "Abaixo de 3",
         description: "Consuma menos de 3 cigarros hoje",
         type: "DAILY",
-        xpReward: 25,
+        xpReward: 40,
         targetValue: 3.0,
         condition: "daily_under_value",
       },
