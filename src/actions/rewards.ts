@@ -44,6 +44,7 @@ export async function getRewardsWithStatus() {
         id: reward.id,
         title: reward.title,
         description: reward.description,
+        imageUrl: reward.imageUrl,
         costXp: reward.costXp,
         dailyLimit: reward.dailyLimit,
         alreadyRedeemedToday: redemptionsToday >= reward.dailyLimit,

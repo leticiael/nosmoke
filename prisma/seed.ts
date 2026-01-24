@@ -48,6 +48,7 @@ async function main() {
       data: {
         title: "Massagem relaxante 15min",
         description: "Uma massagem de 15 minutos para relaxar",
+        imageUrl: "/images/massagem.png",
         costXp: 70,
         dailyLimit: 1,
         sortOrder: 1,
@@ -57,6 +58,7 @@ async function main() {
       data: {
         title: "Voucher especial",
         description: "Um voucher surpresa escolhido pela admin",
+        imageUrl: "/images/voucher.png",
         costXp: 100,
         dailyLimit: 1,
         sortOrder: 2,
@@ -67,6 +69,7 @@ async function main() {
         title: "Esportes juntos",
         description:
           "Praticar esportes juntos no horário que você escolher, sem adiar",
+        imageUrl: "/images/esportes.png",
         costXp: 150,
         dailyLimit: 1,
         sortOrder: 3,
@@ -76,6 +79,7 @@ async function main() {
       data: {
         title: "Jogar cassino",
         description: "Uma sessão de jogos no cassino",
+        imageUrl: "/images/cassino.png",
         costXp: 600,
         dailyLimit: 1,
         sortOrder: 4,

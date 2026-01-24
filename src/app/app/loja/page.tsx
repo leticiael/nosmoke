@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,7 @@ type RewardWithStatus = {
   id: string;
   title: string;
   description: string | null;
+  imageUrl: string | null;
   costXp: number;
   dailyLimit: number;
   alreadyRedeemedToday: boolean;
@@ -149,13 +151,24 @@ export default function LojaPage() {
             >
               <CardContent className="p-5">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1">
-                    <h3 className="font-semibold">{reward.title}</h3>
-                    {reward.description && (
-                      <p className="text-sm text-muted-foreground">
-                        {reward.description}
-                      </p>
+                  <div className="flex items-center gap-3">
+                    {reward.imageUrl && (
+                      <Image
+                        src={reward.imageUrl}
+                        alt={reward.title}
+                        width={48}
+                        height={48}
+                        className="object-contain"
+                      />
                     )}
+                    <div className="space-y-1">
+                      <h3 className="font-semibold">{reward.title}</h3>
+                      {reward.description && (
+                        <p className="text-sm text-muted-foreground">
+                          {reward.description}
+                        </p>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 shrink-0">
                     <Sparkles className="h-4 w-4 text-primary" />
