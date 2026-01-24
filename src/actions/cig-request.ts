@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { todayBrasilia } from "@/lib/date-utils";
 import { cigRequestSchema } from "@/lib/validations";
 import { calculateExtraCost, addXp, getUserXp } from "@/lib/calculations";
+import { generateCouponCode } from "@/lib/coupon";
 import { revalidatePath } from "next/cache";
 import { Decimal } from "@prisma/client/runtime/library";
 
@@ -42,6 +43,18 @@ export async function createCigRequest(formData: FormData) {
   }
 
   try {
+    // Gera código de cupom único
+    let couponCode = generateCouponCode();
+    let attempts = 0;
+    while (attempts < 10) {
+      const existing = await prisma.cigRequest.findFirst({
+        where: { couponCode },
+      });
+      if (!existing) break;
+      couponCode = generateCouponCode();
+      attempts++;
+    }
+
     // Cria o pedido
     const request = await prisma.cigRequest.create({
       data: {
@@ -51,6 +64,7 @@ export async function createCigRequest(formData: FormData) {
         reason2,
         dateBr: today,
         status: "PENDING",
+        couponCode,
       },
     });
 
@@ -73,6 +87,8 @@ export async function createCigRequest(formData: FormData) {
       success: true,
       isExtra: extraInfo.isExtra,
       xpCost: extraInfo.xpCost,
+      couponCode: request.couponCode,
+      requestId: request.id,
     };
   } catch (error) {
     console.error("Erro ao criar pedido:", error);

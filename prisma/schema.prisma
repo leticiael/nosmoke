@@ -73,6 +73,7 @@ model CigRequest {
   status     RequestStatus @default(PENDING)
   approvedAt DateTime?
   dateBr     String        // YYYY-MM-DD para facilitar queries por dia
+  couponCode String?       @unique // Código do cupom (gerado automaticamente)
 
   @@index([userId])
   @@index([dateBr])
@@ -120,6 +121,7 @@ model RewardRedemption {
   status      RedemptionStatus @default(PENDING)
   validatedAt DateTime?
   dateBr      String           // YYYY-MM-DD para controle de limite diário
+  couponCode  String?          @unique // Código do cupom (gerado automaticamente)
 
   @@index([userId])
   @@index([rewardId])

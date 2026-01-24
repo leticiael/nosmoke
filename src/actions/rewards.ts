@@ -10,6 +10,7 @@ import {
   hasRedeemedToday,
   getRedemptionCountToday,
 } from "@/lib/calculations";
+import { generateCouponCode } from "@/lib/coupon";
 import { revalidatePath } from "next/cache";
 import type { Prisma } from "@prisma/client";
 
@@ -101,6 +102,18 @@ export async function redeemReward(formData: FormData) {
       return { error: "Você já resgatou esta recompensa hoje" };
     }
 
+    // Gera código de cupom único
+    let couponCode = generateCouponCode();
+    let attempts = 0;
+    while (attempts < 10) {
+      const existing = await prisma.rewardRedemption.findFirst({
+        where: { couponCode },
+      });
+      if (!existing) break;
+      couponCode = generateCouponCode();
+      attempts++;
+    }
+
     // Cria o resgate
     const redemption = await prisma.rewardRedemption.create({
       data: {
@@ -108,6 +121,7 @@ export async function redeemReward(formData: FormData) {
         rewardId,
         dateBr: today,
         status: "PENDING",
+        couponCode,
       },
     });
 
@@ -124,7 +138,11 @@ export async function redeemReward(formData: FormData) {
     revalidatePath("/app");
     revalidatePath("/admin");
 
-    return { success: true, rewardTitle: reward.title };
+    return {
+      success: true,
+      rewardTitle: reward.title,
+      couponCode: redemption.couponCode,
+    };
   } catch (error) {
     console.error("Erro ao resgatar recompensa:", error);
     return { error: "Erro ao resgatar. Tente novamente." };

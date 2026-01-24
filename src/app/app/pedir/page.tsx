@@ -111,14 +111,18 @@ export default function PedirPage() {
         return;
       }
 
-      toast({
-        title: "Pedido enviado! ✓",
-        description: result.isExtra
-          ? `Pedido extra. ${result.xpCost} XP descontados.`
-          : "Aguarde a Letícia aprovar 💜",
-      });
-
-      router.push("/app");
+      // Redireciona para a página do cupom
+      if (result.couponCode) {
+        router.push(`/app/cupom/${result.couponCode}`);
+      } else {
+        toast({
+          title: "Pedido enviado! ✓",
+          description: result.isExtra
+            ? `Pedido extra. ${result.xpCost} XP descontados.`
+            : "Aguarde a Letícia aprovar 💜",
+        });
+        router.push("/app");
+      }
     });
   };
 

@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { AdminSidebar } from "@/components/admin-sidebar";
+import { AdminNav } from "@/components/admin-nav";
 
 export default async function AdminLayout({
   children,
@@ -15,8 +15,8 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-screen bg-background">
-      <AdminSidebar />
-      <main className="ml-64 p-8">
+      <AdminNav userName={session.user.name} />
+      <main className="p-4 pb-24 md:ml-64 md:p-8 md:pb-8">
         <div className="mx-auto max-w-5xl">{children}</div>
       </main>
     </div>

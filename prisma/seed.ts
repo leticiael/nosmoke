@@ -170,12 +170,12 @@ async function main() {
   await prisma.xpLedger.create({
     data: {
       userId: user.id,
-      delta: 100,
+      delta: 200,
       type: "bonus_inicial",
       note: "Bônus de boas-vindas",
     },
   });
-  console.log("✅ XP inicial concedido ao usuário");
+  console.log("✅ XP inicial concedido ao usuário (200 XP)");
 
   console.log("\n🎉 Seed concluído com sucesso!");
   console.log("\n📝 Credenciais para teste:");

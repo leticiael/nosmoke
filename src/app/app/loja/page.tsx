@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +34,7 @@ type Redemption = {
 };
 
 export default function LojaPage() {
+  const router = useRouter();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [pendingRewardId, setPendingRewardId] = useState<string | null>(null);
@@ -70,6 +72,10 @@ export default function LojaPage() {
           description: result.error,
           variant: "destructive",
         });
+        setPendingRewardId(null);
+      } else if (result.couponCode) {
+        // Redireciona para a página do cupom
+        router.push(`/app/cupom/${result.couponCode}`);
       } else {
         toast({
           title: "Resgate enviado! 🎉",
@@ -77,9 +83,8 @@ export default function LojaPage() {
           variant: "success",
         });
         await loadData();
+        setPendingRewardId(null);
       }
-
-      setPendingRewardId(null);
     });
   };
 
