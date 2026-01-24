@@ -12,7 +12,14 @@ import {
 } from "@/actions/cig-request";
 import { getUserDashboard } from "@/actions/dashboard";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, AlertTriangle, Sparkles, Cigarette, ArrowLeft, Check } from "lucide-react";
+import {
+  Loader2,
+  AlertTriangle,
+  Sparkles,
+  Cigarette,
+  ArrowLeft,
+  Check,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
@@ -25,7 +32,7 @@ export default function PedirPage() {
 
   // Etapa do funil: 1 = quantidade, 2 = motivo, 3 = confirmar
   const [step, setStep] = useState(1);
-  
+
   const [amount, setAmount] = useState<string>("");
   const [reason, setReason] = useState("");
   const [reasons, setReasons] = useState<Reason[]>([]);
@@ -149,7 +156,7 @@ export default function PedirPage() {
             key={s}
             className={cn(
               "h-1.5 flex-1 rounded-full transition-colors",
-              s <= step ? "bg-primary" : "bg-muted"
+              s <= step ? "bg-primary" : "bg-muted",
             )}
           />
         ))}
@@ -165,12 +172,14 @@ export default function PedirPage() {
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Hoje</span>
                   <span className="font-medium">
-                    {dashboardData.todayTotal} / {dashboardData.todayLimit} cigarros
+                    {dashboardData.todayTotal} / {dashboardData.todayLimit}{" "}
+                    cigarros
                   </span>
                 </div>
                 {dashboardData.todayRemaining > 0 ? (
                   <p className="text-xs text-green-600 mt-1">
-                    ✓ Ainda pode pedir {dashboardData.todayRemaining} dentro da meta
+                    ✓ Ainda pode pedir {dashboardData.todayRemaining} dentro da
+                    meta
                   </p>
                 ) : (
                   <p className="text-xs text-amber-600 mt-1">
@@ -189,16 +198,20 @@ export default function PedirPage() {
             >
               <Cigarette className="h-8 w-8 text-muted-foreground mb-3 rotate-45" />
               <span className="text-4xl font-bold">½</span>
-              <span className="text-sm text-muted-foreground mt-1">meio cigarro</span>
+              <span className="text-sm text-muted-foreground mt-1">
+                meio cigarro
+              </span>
             </button>
-            
+
             <button
               onClick={() => handleSelectAmount("1.0")}
               className="flex flex-col items-center justify-center rounded-2xl border-2 border-muted bg-card p-8 hover:border-primary hover:bg-primary/5 transition-all active:scale-95"
             >
               <Cigarette className="h-8 w-8 text-muted-foreground mb-3" />
               <span className="text-4xl font-bold">1</span>
-              <span className="text-sm text-muted-foreground mt-1">cigarro inteiro</span>
+              <span className="text-sm text-muted-foreground mt-1">
+                cigarro inteiro
+              </span>
             </button>
           </div>
         </div>
@@ -236,7 +249,7 @@ export default function PedirPage() {
                 className={cn(
                   "w-full text-left p-4 rounded-xl border-2 border-muted bg-card transition-all",
                   "hover:border-primary hover:bg-primary/5 active:scale-[0.98]",
-                  "disabled:opacity-50 disabled:cursor-not-allowed"
+                  "disabled:opacity-50 disabled:cursor-not-allowed",
                 )}
               >
                 <span className="text-base">{r.text}</span>
@@ -260,14 +273,16 @@ export default function PedirPage() {
                 <span className="text-muted-foreground text-sm">Motivo</span>
                 <p className="font-medium mt-1">{reason}</p>
               </div>
-              
+
               {extraInfo?.isExtra && (
                 <div className="border-t pt-4 flex items-center justify-between">
                   <div className="flex items-center gap-2 text-amber-600">
                     <Sparkles className="h-4 w-4" />
                     <span className="text-sm">Custo extra</span>
                   </div>
-                  <span className="font-bold text-amber-600">−{extraInfo.xpCost} XP</span>
+                  <span className="font-bold text-amber-600">
+                    −{extraInfo.xpCost} XP
+                  </span>
                 </div>
               )}
             </CardContent>
@@ -293,7 +308,7 @@ export default function PedirPage() {
                 </>
               )}
             </Button>
-            
+
             <p className="text-center text-xs text-muted-foreground">
               A Letícia vai receber uma notificação 💜
             </p>
