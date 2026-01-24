@@ -57,7 +57,7 @@ async function main() {
       data: {
         title: "Voucher especial",
         description: "Um voucher surpresa escolhido pela admin",
-        costXp: 150,
+        costXp: 100,
         dailyLimit: 1,
         sortOrder: 2,
       },
@@ -67,7 +67,7 @@ async function main() {
         title: "Esportes juntos",
         description:
           "Praticar esportes juntos no horário que você escolher, sem adiar",
-        costXp: 220,
+        costXp: 150,
         dailyLimit: 1,
         sortOrder: 3,
       },
@@ -76,7 +76,7 @@ async function main() {
       data: {
         title: "Jogar cassino",
         description: "Uma sessão de jogos no cassino",
-        costXp: 800,
+        costXp: 600,
         dailyLimit: 1,
         sortOrder: 4,
       },
@@ -107,9 +107,9 @@ async function main() {
     prisma.mission.create({
       data: {
         title: "Dia dentro da meta",
-        description: "Fique dentro da meta diária",
+        description: "Fique dentro da meta diária (3.5 ou menos)",
         type: "DAILY",
-        xpReward: 15,
+        xpReward: 30,
         condition: "daily_under_limit",
       },
     }),
@@ -118,7 +118,7 @@ async function main() {
         title: "Abaixo de 3",
         description: "Consuma menos de 3 cigarros hoje",
         type: "DAILY",
-        xpReward: 40,
+        xpReward: 70,
         targetValue: 3.0,
         condition: "daily_under_value",
       },
