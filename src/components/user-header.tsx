@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { Sparkles, LogOut } from "lucide-react";
+import { LogOut, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signOut } from "next-auth/react";
+import Link from "next/link";
 
 interface UserHeaderProps {
   userName: string;
@@ -38,6 +39,15 @@ export function UserHeader({ userName, xp }: UserHeaderProps) {
             />
             <span className="font-bold text-teal-400 text-base">{xp}</span>
           </div>
+          <Link href="/app/como-funciona">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-zinc-500 hover:text-white hover:bg-zinc-800"
+            >
+              <HelpCircle className="h-4 w-4" />
+            </Button>
+          </Link>
           <Button
             variant="ghost"
             size="icon"
