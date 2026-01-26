@@ -467,23 +467,43 @@ export async function grantDailyAllowance(userId: string): Promise<number> {
 
 /**
  * Calcula quanto XP custa um pedido de cigarro
- * No novo sistema: amount × xpPerCig
+ * Dentro da meta: 30 XP por cigarro
+ * Fora da meta (extra): 50 XP por cigarro (mais caro!)
  */
 export async function calculateCigCost(amount: number): Promise<{
   xpCost: number;
   xpPerCig: number;
+  isExtra: boolean;
+  extraCostPerCig: number;
 }> {
   const config = await getSystemConfig();
+  const today = todayBrasilia();
 
   if (!config.dailyXpEnabled) {
     // Sistema legado: só cobra em extras
-    return { xpCost: 0, xpPerCig: 0 };
+    return { xpCost: 0, xpPerCig: 0, isExtra: false, extraCostPerCig: 0 };
   }
 
   const xpPerCig = config.xpPerCig ?? 30;
-  const xpCost = Math.round(amount * xpPerCig);
+  const extraCostPerCig = 50; // Cigarros extras custam mais!
+  
+  // Verifica quanto já fumou hoje e qual a meta
+  const todayTotal = await getTotalForDay(today);
+  const dailyLimit = await getDayLimit(today);
+  
+  // Calcula quanto do pedido está dentro da meta e quanto é extra
+  const remaining = Math.max(0, dailyLimit - todayTotal);
+  const withinLimit = Math.min(amount, remaining);
+  const extraAmount = Math.max(0, amount - remaining);
+  
+  // Custo: dentro da meta = 30 XP, extra = 50 XP
+  const withinCost = Math.round(withinLimit * xpPerCig);
+  const extraCost = Math.round(extraAmount * extraCostPerCig);
+  const xpCost = withinCost + extraCost;
+  
+  const isExtra = extraAmount > 0;
 
-  return { xpCost, xpPerCig };
+  return { xpCost, xpPerCig, isExtra, extraCostPerCig };
 }
 
 /**
@@ -536,4 +556,48 @@ export async function getDailyXpStats(userId: string): Promise<{
     cigsSmoked,
     xpPerCig,
   };
+}
+
+/**
+ * Verifica se o usuário deve receber punição por excesso de cigarros
+ * Se fumar mais de 3.5 cigarros no dia, perde 20 XP extras
+ * Retorna true se a punição foi aplicada
+ */
+export async function checkAndApplyExcessPenalty(
+  userId: string,
+  dateBr: string = todayBrasilia(),
+): Promise<{ applied: boolean; penalty: number; totalCigs: number }> {
+  const EXCESS_LIMIT = 3.5;
+  const PENALTY_XP = 20;
+
+  const totalCigs = await getTotalForDay(dateBr);
+
+  // Se não passou do limite, não aplica punição
+  if (totalCigs <= EXCESS_LIMIT) {
+    return { applied: false, penalty: 0, totalCigs };
+  }
+
+  // Verifica se já aplicou a punição hoje
+  const alreadyApplied = await prisma.xpLedger.findFirst({
+    where: {
+      userId,
+      type: "excess_penalty",
+      note: { contains: dateBr },
+    },
+  });
+
+  if (alreadyApplied) {
+    return { applied: false, penalty: 0, totalCigs };
+  }
+
+  // Aplica a punição
+  await addXp(
+    userId,
+    -PENALTY_XP,
+    "excess_penalty",
+    undefined,
+    `Punição por excesso: ${totalCigs} cigarros (${dateBr})`,
+  );
+
+  return { applied: true, penalty: PENALTY_XP, totalCigs };
 }

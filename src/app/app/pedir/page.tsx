@@ -276,10 +276,15 @@ export default function PedirPage() {
 
           {/* Info sobre XP */}
           <Card className="border-0 bg-zinc-800/50 mt-2">
-            <CardContent className="p-3">
+            <CardContent className="p-3 space-y-1">
               <p className="text-xs text-zinc-400 text-center">
-                Você recebe <span className="text-teal-400">100 XP de mesada</span> por dia.
-                Cada cigarro custa <span className="text-amber-400">30 XP</span>.
+                <span className="text-teal-400">Dentro da meta:</span> 30 XP por cigarro
+              </p>
+              <p className="text-xs text-zinc-400 text-center">
+                <span className="text-red-400">Fora da meta:</span> 50 XP por cigarro
+              </p>
+              <p className="text-xs text-red-400/80 text-center mt-2">
+                Mais de 3.5 cigarros no dia = -20 XP de punição
               </p>
             </CardContent>
           </Card>

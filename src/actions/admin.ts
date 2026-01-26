@@ -9,7 +9,7 @@ import {
   setDayLimitSchema,
   updateConfigSchema,
 } from "@/lib/validations";
-import { addXp, getTotalForDay, getDayLimit } from "@/lib/calculations";
+import { addXp, getTotalForDay, getDayLimit, checkAndApplyExcessPenalty } from "@/lib/calculations";
 import { revalidatePath } from "next/cache";
 import type { Prisma } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
@@ -92,6 +92,18 @@ export async function approveOrRejectRequest(formData: FormData) {
           approvedAt: new Date(),
         },
       });
+
+      // Verifica e aplica punição por excesso (mais de 3.5 cigarros no dia)
+      const penaltyResult = await checkAndApplyExcessPenalty(
+        request.userId,
+        request.dateBr,
+      );
+      
+      if (penaltyResult.applied) {
+        console.log(
+          `Punição aplicada: -${penaltyResult.penalty} XP por ${penaltyResult.totalCigs} cigarros`,
+        );
+      }
     } else {
       // Se rejeitado, devolve XP se foi cobrado (pedido extra)
       const xpEntry = await prisma.xpLedger.findFirst({

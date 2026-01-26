@@ -28,24 +28,24 @@ const slides = [
   },
   {
     id: 3,
-    title: "Cada Cigarro Custa XP",
-    description: "Para pedir um cigarro, você gasta XP da sua mesada. É como comprar com seu dinheiro virtual!",
+    title: "Custo por Cigarro",
+    description: "Para pedir um cigarro, você gasta XP. Dentro da meta é mais barato, fora da meta é mais caro!",
     image: "/images/cigarroaceso.png",
     bgColor: "from-amber-950/60 to-slate-900/40",
     details: [
-      { icon: "🚬", text: "1 cigarro = 30 XP", color: "text-amber-400" },
-      { icon: "½", text: "½ cigarro = 15 XP", color: "text-amber-400" },
+      { icon: "✓", text: "Dentro da meta: 30 XP", color: "text-emerald-400" },
+      { icon: "!", text: "Fora da meta: 50 XP", color: "text-red-400" },
     ],
   },
   {
     id: 4,
-    title: "Sua Meta Diária",
-    description: "Você tem uma meta de cigarros por dia. Ficar dentro da meta mostra seu progresso, mas o custo de XP é o mesmo!",
+    title: "Punição por Excesso",
+    description: "Se fumar mais de 3.5 cigarros no dia, você leva uma punição extra de -20 XP! Isso incentiva você a se controlar.",
     image: "/images/trophy.png",
-    bgColor: "from-emerald-950/60 to-slate-900/40",
+    bgColor: "from-red-950/60 to-slate-900/40",
     details: [
-      { icon: "🎯", text: "Meta = seu objetivo diário", color: "text-zinc-300" },
-      { icon: "📊", text: "Acompanhe seu progresso", color: "text-zinc-300" },
+      { icon: "⚠️", text: "Mais de 3.5 cigs = -20 XP", color: "text-red-400" },
+      { icon: "🎯", text: "Fique dentro do limite!", color: "text-zinc-300" },
     ],
   },
   {
