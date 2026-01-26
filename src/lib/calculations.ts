@@ -377,3 +377,163 @@ export async function getRedemptionCountToday(
     },
   });
 }
+
+/**
+ * ==========================================
+ * NOVO SISTEMA DE MESADA DIÁRIA
+ * ==========================================
+ */
+
+/**
+ * Retorna a mesada diária fixa
+ * mesada = 100 XP (fixo)
+ */
+export async function getDailyAllowance(
+  dateBr: string = todayBrasilia(),
+): Promise<{
+  dailyLimit: number;
+  xpPerCig: number;
+  allowance: number;
+}> {
+  const config = await getSystemConfig();
+  const dailyLimit = await getDayLimit(dateBr);
+  const xpPerCig = config.xpPerCig ?? 30;
+
+  // Mesada fixa de 100 XP por dia
+  const allowance = 100;
+
+  return { dailyLimit, xpPerCig, allowance };
+}
+
+/**
+ * Verifica se o usuário já recebeu a mesada de hoje
+ */
+export async function hasReceivedAllowanceToday(
+  userId: string,
+): Promise<boolean> {
+  const today = todayBrasilia();
+  const existing = await prisma.xpLedger.findFirst({
+    where: {
+      userId,
+      type: "daily_allowance",
+      note: { contains: today },
+    },
+  });
+  return !!existing;
+}
+
+/**
+ * Dá a mesada diária ao usuário (se ainda não recebeu)
+ * Retorna o valor dado ou 0 se já recebeu
+ */
+export async function grantDailyAllowance(userId: string): Promise<number> {
+  const config = await getSystemConfig();
+
+  // Se o novo sistema não está habilitado, não faz nada
+  if (!config.dailyXpEnabled) {
+    return 0;
+  }
+
+  // Verifica se o usuário existe
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+  if (!user) {
+    return 0;
+  }
+
+  const today = todayBrasilia();
+
+  // Verifica se já recebeu hoje
+  const alreadyReceived = await hasReceivedAllowanceToday(userId);
+  if (alreadyReceived) {
+    return 0;
+  }
+
+  // Calcula a mesada
+  const { allowance, dailyLimit } = await getDailyAllowance(today);
+
+  // Registra no ledger
+  await addXp(
+    userId,
+    allowance,
+    "daily_allowance",
+    undefined,
+    `Mesada diária (${today}) - meta: ${dailyLimit}`,
+  );
+
+  return allowance;
+}
+
+/**
+ * Calcula quanto XP custa um pedido de cigarro
+ * No novo sistema: amount × xpPerCig
+ */
+export async function calculateCigCost(amount: number): Promise<{
+  xpCost: number;
+  xpPerCig: number;
+}> {
+  const config = await getSystemConfig();
+
+  if (!config.dailyXpEnabled) {
+    // Sistema legado: só cobra em extras
+    return { xpCost: 0, xpPerCig: 0 };
+  }
+
+  const xpPerCig = config.xpPerCig ?? 30;
+  const xpCost = Math.round(amount * xpPerCig);
+
+  return { xpCost, xpPerCig };
+}
+
+/**
+ * Retorna estatísticas do dia para o novo sistema
+ */
+export async function getDailyXpStats(userId: string): Promise<{
+  enabled: boolean;
+  allowance: number;
+  spent: number;
+  remaining: number;
+  cigsSmoked: number;
+  xpPerCig: number;
+}> {
+  const config = await getSystemConfig();
+  const today = todayBrasilia();
+
+  if (!config.dailyXpEnabled) {
+    return {
+      enabled: false,
+      allowance: 0,
+      spent: 0,
+      remaining: 0,
+      cigsSmoked: 0,
+      xpPerCig: 0,
+    };
+  }
+
+  const { allowance, xpPerCig } = await getDailyAllowance(today);
+  const cigsSmoked = await getTotalForDay(today);
+
+  // XP gasto hoje em cigarros
+  const spentResult = await prisma.xpLedger.aggregate({
+    where: {
+      userId,
+      type: "cig_purchase",
+      note: { contains: today },
+    },
+    _sum: { delta: true },
+  });
+  const spent = Math.abs(spentResult._sum.delta ?? 0);
+
+  // Calcula restante (pode ser negativo se ultrapassou)
+  const remaining = allowance - spent;
+
+  return {
+    enabled: true,
+    allowance,
+    spent,
+    remaining,
+    cigsSmoked,
+    xpPerCig,
+  };
+}

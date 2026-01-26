@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 async function main() {
   const result = await prisma.reward.updateMany({
     where: { title: "Jogar cassino" },
-    data: { imageUrl: "/images/cassino3.png" },
+    data: { imageUrl: "/images/cassino2.png" },
   });
   console.log("Atualizado:", result);
 }

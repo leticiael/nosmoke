@@ -15,6 +15,8 @@ import {
   getDayLimit,
   addXp,
   getUserXp,
+  grantDailyAllowance,
+  getDailyXpStats,
 } from "@/lib/calculations";
 
 export async function getUserDashboard() {
@@ -23,11 +25,16 @@ export async function getUserDashboard() {
     return null;
   }
 
+  // Garante que o usuário receba a mesada do dia
+  await grantDailyAllowance(session.user.id);
+
   const stats = await getDashboardStats(session.user.id);
+  const dailyXp = await getDailyXpStats(session.user.id);
 
   return {
     ...stats,
     userName: session.user.name,
+    dailyXp, // Novo: info da mesada
   };
 }
 
@@ -67,6 +74,14 @@ export async function getProgressData() {
 export async function getUserMissions() {
   const session = await auth();
   if (!session?.user?.id) {
+    return { daily: [], weekly: [] };
+  }
+
+  // Verifica se o usuário existe no banco
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+  });
+  if (!user) {
     return { daily: [], weekly: [] };
   }
 

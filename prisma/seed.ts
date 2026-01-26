@@ -43,25 +43,17 @@ async function main() {
   console.log("✅ Usuário criado:", user.email);
 
   // Criar recompensas da loja
+  // Com meta 3.5 e 30 XP/cig = 105 XP mesada/dia
+  // Preços definidos pela Letícia
   const rewards = await Promise.all([
-    prisma.reward.create({
-      data: {
-        title: "Massagem relaxante 15min",
-        description: "Uma massagem de 15 minutos para relaxar",
-        imageUrl: "/images/massagem2.png",
-        costXp: 70,
-        dailyLimit: 1,
-        sortOrder: 1,
-      },
-    }),
     prisma.reward.create({
       data: {
         title: "Voucher especial",
         description: "Um voucher surpresa escolhido pela admin",
         imageUrl: "/images/voucher2.png",
-        costXp: 100,
+        costXp: 170,
         dailyLimit: 1,
-        sortOrder: 2,
+        sortOrder: 1,
       },
     }),
     prisma.reward.create({
@@ -70,7 +62,17 @@ async function main() {
         description:
           "Praticar esportes juntos no horário que você escolher, sem adiar",
         imageUrl: "/images/esportes2.png",
-        costXp: 150,
+        costXp: 200,
+        dailyLimit: 1,
+        sortOrder: 2,
+      },
+    }),
+    prisma.reward.create({
+      data: {
+        title: "Massagem relaxante 15min",
+        description: "Uma massagem de 15 minutos para relaxar",
+        imageUrl: "/images/massagem2.png",
+        costXp: 220,
         dailyLimit: 1,
         sortOrder: 3,
       },
@@ -80,7 +82,7 @@ async function main() {
         title: "Jogar cassino",
         description: "Uma sessão de jogos no cassino",
         imageUrl: "/images/cassino2.png",
-        costXp: 600,
+        costXp: 777,
         dailyLimit: 1,
         sortOrder: 4,
       },
@@ -106,12 +108,16 @@ async function main() {
   console.log("✅ Motivos criados:", reasons.length);
 
   // Criar missões
+  // Sistema de XP:
+  // - Mesada diária: 100 XP (fixo, todo dia)
+  // - Dentro da meta: +30 XP (bônus)
+  // - Menos de 3 cigarros: +50 XP (bônus extra)
   const missions = await Promise.all([
     // Missões diárias
     prisma.mission.create({
       data: {
-        title: "Dia dentro da meta",
-        description: "Fique dentro da meta diária (3.5 ou menos)",
+        title: "Dentro da meta",
+        description: "Fume até a meta do dia",
         type: "DAILY",
         xpReward: 30,
         condition: "daily_under_limit",
@@ -119,38 +125,29 @@ async function main() {
     }),
     prisma.mission.create({
       data: {
-        title: "Abaixo de 3",
-        description: "Consuma menos de 3 cigarros hoje",
+        title: "Super economia",
+        description: "Fume no máximo 2 cigarros",
         type: "DAILY",
-        xpReward: 70,
+        xpReward: 50,
         targetValue: 3.0,
         condition: "daily_under_value",
-      },
-    }),
-    prisma.mission.create({
-      data: {
-        title: "Sem extras",
-        description: "Não peça nenhum cigarro extra hoje",
-        type: "DAILY",
-        xpReward: 20,
-        condition: "no_extras",
       },
     }),
     // Missões semanais
     prisma.mission.create({
       data: {
-        title: "Semana campeã",
-        description: "Fique dentro da meta em 5 dos 7 dias",
+        title: "Semana consistente",
+        description: "5 dias dentro da meta",
         type: "WEEKLY",
-        xpReward: 50,
+        xpReward: 100,
         targetValue: 5,
         condition: "weekly_days_under_limit",
       },
     }),
     prisma.mission.create({
       data: {
-        title: "Redução real",
-        description: "Média semanal menor que a semana anterior",
+        title: "Progresso real",
+        description: "Média menor que semana passada",
         type: "WEEKLY",
         xpReward: 75,
         condition: "weekly_reduction",
@@ -164,22 +161,24 @@ async function main() {
     data: {
       weeklyReductionPct: 10,
       defaultDailyLimit: 3.5,
-      extraCost05: 12,
-      extraCost10: 20,
+      extraCost05: 12, // legado
+      extraCost10: 20, // legado
+      xpPerCig: 30, // 30 XP por cigarro
+      dailyXpEnabled: true, // novo sistema ativo
     },
   });
-  console.log("✅ Configuração do sistema criada");
+  console.log("✅ Configuração do sistema criada (novo sistema de mesada)");
 
-  // Dar XP inicial ao usuário para testar a loja
+  // Dar 20 XP inicial ao usuário (além da mesada de 100 = 120 total)
   await prisma.xpLedger.create({
     data: {
       userId: user.id,
-      delta: 200,
-      type: "bonus_inicial",
-      note: "Bônus de boas-vindas",
+      delta: 20,
+      type: "initial_bonus",
+      note: "Bônus inicial de boas-vindas",
     },
   });
-  console.log("✅ XP inicial concedido ao usuário (200 XP)");
+  console.log("✅ Usuário começa com 20 XP + 100 mesada = 120 XP");
 
   console.log("\n🎉 Seed concluído com sucesso!");
   console.log("\n📝 Credenciais para teste:");

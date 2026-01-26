@@ -32,6 +32,7 @@ export default async function DashboardPage() {
     alerts,
     nextReward,
     pendingRequests,
+    dailyXp,
   } = data;
 
   const progressPercent = Math.min((todayTotal / dailyLimit) * 100, 100);
@@ -103,19 +104,31 @@ export default async function DashboardPage() {
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-xs md:text-sm text-zinc-500 uppercase tracking-wider">
-                      XP atual
+                      {dailyXp?.enabled ? "Saldo de hoje" : "XP atual"}
                     </p>
-                    <p className="text-2xl md:text-3xl font-bold text-white mt-1">
-                      {xp}
+                    <p
+                      className={`text-2xl md:text-3xl font-bold mt-1 ${dailyXp?.enabled && dailyXp.remaining < 0 ? "text-red-400" : "text-white"}`}
+                    >
+                      {dailyXp?.enabled ? dailyXp.remaining : xp}
                     </p>
-                    {nextReward && (
+                    {dailyXp?.enabled ? (
+                      <p className="text-xs md:text-sm text-zinc-500 mt-1">
+                        Mesada: {dailyXp.allowance} XP
+                      </p>
+                    ) : nextReward ? (
                       <p className="text-xs md:text-sm text-zinc-500 mt-1">
                         Próximo: {nextReward.costXp} XP
                       </p>
-                    )}
+                    ) : null}
                   </div>
                   <div className="p-2 md:p-3 rounded-lg bg-teal-500/20">
-                    <Sparkles className="h-5 w-5 md:h-6 md:w-6 text-teal-400" />
+                    <Image
+                      src="/images/hearth.png"
+                      alt="XP"
+                      width={24}
+                      height={24}
+                      className="[image-rendering:pixelated] md:w-6 md:h-6"
+                    />
                   </div>
                 </div>
               </CardContent>
@@ -126,13 +139,17 @@ export default async function DashboardPage() {
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-xs md:text-sm text-zinc-500 uppercase tracking-wider">
-                      Esta semana
+                      {dailyXp?.enabled ? "XP acumulado" : "Esta semana"}
                     </p>
-                    <p className="text-2xl md:text-3xl font-bold text-white mt-1">
-                      {formatNumber(weekTotal)}
+                    <p
+                      className={`text-2xl md:text-3xl font-bold mt-1 ${xp < 0 ? "text-red-400" : "text-white"}`}
+                    >
+                      {dailyXp?.enabled ? xp : formatNumber(weekTotal)}
                     </p>
                     <p className="text-xs md:text-sm text-zinc-500 mt-1">
-                      Média: {formatNumber(average7Days)}/dia
+                      {dailyXp?.enabled
+                        ? `Para a loja`
+                        : `Média: ${formatNumber(average7Days)}/dia`}
                     </p>
                   </div>
                   <div className="p-2 md:p-3 rounded-lg bg-emerald-500/20">
@@ -199,7 +216,7 @@ export default async function DashboardPage() {
           <Card className="border-0 bg-zinc-900/80 hover:bg-zinc-800/80 transition-colors cursor-pointer h-full">
             <CardContent className="p-4 md:p-6 flex flex-col items-center justify-center text-center">
               <Image
-                src="/images/pocaomarrom1.png"
+                src="/images/esportes2.png"
                 alt="Loja"
                 width={40}
                 height={40}

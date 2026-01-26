@@ -180,7 +180,10 @@ model SystemConfig {
   id                  String   @id @default(cuid())
   weeklyReductionPct  Decimal  @default(10) @db.Decimal(4, 1) // % de redução semanal
   defaultDailyLimit   Decimal  @default(3.5) @db.Decimal(3, 1)
-  extraCost05         Int      @default(12) // XP para 0.5 extra
-  extraCost10         Int      @default(20) // XP para 1.0 extra
+  extraCost05         Int      @default(12) // XP para 0.5 extra (legado)
+  extraCost10         Int      @default(20) // XP para 1.0 extra (legado)
+  // Novo sistema de mesada
+  xpPerCig            Int      @default(30)    // XP por cigarro
+  dailyXpEnabled      Boolean  @default(true)  // Liga novo sistema de mesada
   updatedAt           DateTime @updatedAt
 }
