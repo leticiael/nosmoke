@@ -57,29 +57,18 @@ export default function CupomPage() {
 
   if (loading) {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-6">
+      <div className="min-h-[70vh] flex flex-col items-center justify-center">
         <div className="relative">
+          <div className="w-16 h-16 rounded-full border-4 border-zinc-800 border-t-violet-500 animate-spin" />
           <Image
             src="/images/cigarroaceso.png"
             alt="Carregando"
-            width={64}
-            height={64}
-            className="[image-rendering:pixelated] animate-bounce"
+            width={32}
+            height={32}
+            className="[image-rendering:pixelated] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
           />
-          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-12 h-2 bg-zinc-800/50 rounded-full blur-sm" />
         </div>
-        <div className="flex items-center gap-3">
-          <Image
-            src="/images/letfeliz.png"
-            alt="Letícia"
-            width={48}
-            height={48}
-            className="[image-rendering:pixelated]"
-          />
-          <div className="bg-zinc-900/80 rounded-2xl rounded-bl-none px-4 py-2">
-            <p className="text-sm text-zinc-300">Carregando seu cupom...</p>
-          </div>
-        </div>
+        <p className="text-sm text-zinc-500 mt-4">Carregando cupom...</p>
       </div>
     );
   }
@@ -233,7 +222,7 @@ export default function CupomPage() {
           <Card className="border-0 bg-zinc-900/80">
             <CardContent className="p-4 flex items-center gap-4">
               <Image
-                src="/images/letfeliz.png"
+                src="/images/girl.png"
                 alt="Letícia"
                 width={56}
                 height={56}
