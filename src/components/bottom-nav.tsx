@@ -10,14 +10,18 @@ const navItems = [
   { href: "/app/pedir", label: "Pedir", image: "/images/cigarroaceso.png" },
   { href: "/app/missoes", label: "Missões", image: "/images/soldadodfoof.png" },
   { href: "/app/loja", label: "Loja", image: "/images/pocaomarrom1.png" },
-  { href: "/app/historico", label: "Histórico", image: "/images/letfeliz.png" },
+  {
+    href: "/app/historico",
+    label: "Histórico",
+    image: "/images/historico.png",
+  },
 ];
 
 export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-zinc-800 bg-zinc-950/95 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/80">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-zinc-800 bg-zinc-950/95 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/80 md:hidden">
       <div className="mx-auto flex h-16 max-w-lg items-center justify-around px-2">
         {navItems.map((item) => {
           const isActive = pathname === item.href;

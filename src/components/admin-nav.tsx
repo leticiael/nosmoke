@@ -37,7 +37,7 @@ export function AdminNav({ userName }: { userName: string }) {
         <div className="flex h-14 items-center justify-between px-4">
           <Link href="/admin" className="flex items-center gap-2">
             <Image
-              src="/images/letfeliz.png"
+              src="/images/girl.png"
               alt="Admin"
               width={28}
               height={28}
@@ -169,7 +169,9 @@ export function AdminNav({ userName }: { userName: string }) {
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">{userName}</p>
+                <p className="text-sm font-medium text-white truncate">
+                  {userName}
+                </p>
                 <p className="text-xs text-zinc-500">Admin</p>
               </div>
               <Button

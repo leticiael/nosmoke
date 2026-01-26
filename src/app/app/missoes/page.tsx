@@ -48,7 +48,7 @@ export default async function MissoesPage() {
       </Card>
 
       <Tabs defaultValue="daily" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 bg-zinc-900 p-1">
+        <TabsList className="grid w-full grid-cols-2 bg-zinc-900 p-1 md:w-fit md:mx-0">
           <TabsTrigger
             value="daily"
             className="gap-2 data-[state=active]:bg-zinc-800 data-[state=active]:text-white"
@@ -65,7 +65,7 @@ export default async function MissoesPage() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="daily" className="mt-4 space-y-3">
+        <TabsContent value="daily" className="mt-4">
           {activeDailyMissions.length === 0 &&
           completedDailyMissions.length === 0 ? (
             <Card className="border-0 bg-zinc-900/80">
@@ -84,42 +84,46 @@ export default async function MissoesPage() {
             </Card>
           ) : (
             <>
-              {activeDailyMissions.map((mission) => (
-                <MissionCard
-                  key={mission.id}
-                  title={mission.title}
-                  description={mission.description}
-                  xpReward={mission.xpReward}
-                  progress={mission.progress}
-                  target={mission.target}
-                  status={mission.status}
-                  type={mission.type}
-                />
-              ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {activeDailyMissions.map((mission) => (
+                  <MissionCard
+                    key={mission.id}
+                    title={mission.title}
+                    description={mission.description}
+                    xpReward={mission.xpReward}
+                    progress={mission.progress}
+                    target={mission.target}
+                    status={mission.status}
+                    type={mission.type}
+                  />
+                ))}
+              </div>
               {completedDailyMissions.length > 0 && (
                 <div className="pt-4">
                   <h3 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-3">
                     Concluídas hoje
                   </h3>
-                  {completedDailyMissions.map((mission) => (
-                    <MissionCard
-                      key={mission.id}
-                      title={mission.title}
-                      description={mission.description}
-                      xpReward={mission.xpReward}
-                      progress={mission.progress}
-                      target={mission.target}
-                      status={mission.status}
-                      type={mission.type}
-                    />
-                  ))}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {completedDailyMissions.map((mission) => (
+                      <MissionCard
+                        key={mission.id}
+                        title={mission.title}
+                        description={mission.description}
+                        xpReward={mission.xpReward}
+                        progress={mission.progress}
+                        target={mission.target}
+                        status={mission.status}
+                        type={mission.type}
+                      />
+                    ))}
+                  </div>
                 </div>
               )}
             </>
           )}
         </TabsContent>
 
-        <TabsContent value="weekly" className="mt-4 space-y-3">
+        <TabsContent value="weekly" className="mt-4">
           {activeWeeklyMissions.length === 0 &&
           completedWeeklyMissions.length === 0 ? (
             <Card className="border-0 bg-zinc-900/80">
@@ -138,35 +142,39 @@ export default async function MissoesPage() {
             </Card>
           ) : (
             <>
-              {activeWeeklyMissions.map((mission) => (
-                <MissionCard
-                  key={mission.id}
-                  title={mission.title}
-                  description={mission.description}
-                  xpReward={mission.xpReward}
-                  progress={mission.progress}
-                  target={mission.target}
-                  status={mission.status}
-                  type={mission.type}
-                />
-              ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {activeWeeklyMissions.map((mission) => (
+                  <MissionCard
+                    key={mission.id}
+                    title={mission.title}
+                    description={mission.description}
+                    xpReward={mission.xpReward}
+                    progress={mission.progress}
+                    target={mission.target}
+                    status={mission.status}
+                    type={mission.type}
+                  />
+                ))}
+              </div>
               {completedWeeklyMissions.length > 0 && (
                 <div className="pt-4">
                   <h3 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-3">
                     Concluídas esta semana
                   </h3>
-                  {completedWeeklyMissions.map((mission) => (
-                    <MissionCard
-                      key={mission.id}
-                      title={mission.title}
-                      description={mission.description}
-                      xpReward={mission.xpReward}
-                      progress={mission.progress}
-                      target={mission.target}
-                      status={mission.status}
-                      type={mission.type}
-                    />
-                  ))}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {completedWeeklyMissions.map((mission) => (
+                      <MissionCard
+                        key={mission.id}
+                        title={mission.title}
+                        description={mission.description}
+                        xpReward={mission.xpReward}
+                        progress={mission.progress}
+                        target={mission.target}
+                        status={mission.status}
+                        type={mission.type}
+                      />
+                    ))}
+                  </div>
                 </div>
               )}
             </>

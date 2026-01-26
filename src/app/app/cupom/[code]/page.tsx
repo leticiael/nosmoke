@@ -57,8 +57,29 @@ export default function CupomPage() {
 
   if (loading) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
+      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-6">
+        <div className="relative">
+          <Image
+            src="/images/cigarroaceso.png"
+            alt="Carregando"
+            width={64}
+            height={64}
+            className="[image-rendering:pixelated] animate-bounce"
+          />
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-12 h-2 bg-zinc-800/50 rounded-full blur-sm" />
+        </div>
+        <div className="flex items-center gap-3">
+          <Image
+            src="/images/letfeliz.png"
+            alt="Letícia"
+            width={48}
+            height={48}
+            className="[image-rendering:pixelated]"
+          />
+          <div className="bg-zinc-900/80 rounded-2xl rounded-bl-none px-4 py-2">
+            <p className="text-sm text-zinc-300">Carregando seu cupom...</p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -208,14 +229,28 @@ export default function CupomPage() {
 
       {/* Instrução */}
       {isPending && (
-        <div className="mt-6 text-center">
-          <p className="text-sm text-zinc-400">
-            Mostre este cupom para a{" "}
-            <strong className="text-white">Letícia</strong> validar 💜
-          </p>
-          <p className="text-xs text-zinc-600 mt-2">
-            A página atualiza automaticamente quando aprovado
-          </p>
+        <div className="mt-6">
+          <Card className="border-0 bg-zinc-900/80">
+            <CardContent className="p-4 flex items-center gap-4">
+              <Image
+                src="/images/letfeliz.png"
+                alt="Letícia"
+                width={56}
+                height={56}
+                className="[image-rendering:pixelated] shrink-0"
+              />
+              <div>
+                <p className="text-sm text-zinc-300">
+                  Mostre este cupom para a{" "}
+                  <strong className="text-violet-400">Letícia</strong> validar
+                  💜
+                </p>
+                <p className="text-xs text-zinc-500 mt-1">
+                  A página atualiza automaticamente quando aprovado
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 

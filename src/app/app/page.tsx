@@ -39,133 +39,143 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-4 pb-4">
-      {/* Card principal - Hoje */}
-      <Card
-        className={`border-0 bg-gradient-to-br ${isOverLimit ? "from-red-950/50 to-red-900/30" : "from-violet-950/50 to-purple-900/30"}`}
-      >
-        <CardContent className="p-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white">Hoje</h2>
-            {pendingRequests > 0 && (
-              <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 gap-1">
-                <Clock className="h-3 w-3" />
-                {pendingRequests} pendente{pendingRequests > 1 ? "s" : ""}
-              </Badge>
-            )}
-          </div>
-
-          <div className="flex items-end justify-between">
-            <div>
-              <p className="text-4xl font-bold text-white">
-                {formatNumber(todayTotal)}
-                <span className="text-xl text-white/60 font-normal">
-                  {" "}
-                  / {formatNumber(dailyLimit)}
-                </span>
-              </p>
-              <p className="text-sm text-white/60 mt-1">
-                {remaining > 0
-                  ? `Restam ${formatNumber(remaining)} na meta`
-                  : isOverLimit
-                    ? "Limite ultrapassado!"
-                    : "Meta atingida! 🎉"}
-              </p>
+      {/* Layout responsivo: 2 colunas no desktop */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Card principal - Hoje */}
+        <Card
+          className={`border-0 bg-gradient-to-br ${isOverLimit ? "from-red-950/50 to-red-900/30" : "from-violet-950/50 to-purple-900/30"} lg:row-span-2`}
+        >
+          <CardContent className="p-4 md:p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg md:text-xl font-semibold text-white">
+                Hoje
+              </h2>
+              {pendingRequests > 0 && (
+                <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 gap-1">
+                  <Clock className="h-3 w-3" />
+                  {pendingRequests} pendente{pendingRequests > 1 ? "s" : ""}
+                </Badge>
+              )}
             </div>
-            <Link href="/app/pedir">
-              <Button
-                size="lg"
-                className="gap-2 bg-white/10 hover:bg-white/20 backdrop-blur border-0"
-              >
-                <Cigarette className="h-5 w-5" />
-                Pedir
-              </Button>
-            </Link>
-          </div>
 
-          <Progress
-            value={progressPercent}
-            className="h-2 bg-white/10"
-            indicatorClassName={isOverLimit ? "bg-red-500" : "bg-violet-400"}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-3">
-        <Card className="border-0 bg-zinc-900/80">
-          <CardContent className="p-4">
-            <div className="flex items-start justify-between">
+            <div className="flex items-end justify-between">
               <div>
-                <p className="text-xs text-zinc-500 uppercase tracking-wider">
-                  XP atual
+                <p className="text-4xl md:text-5xl font-bold text-white">
+                  {formatNumber(todayTotal)}
+                  <span className="text-xl md:text-2xl text-white/60 font-normal">
+                    {" "}
+                    / {formatNumber(dailyLimit)}
+                  </span>
                 </p>
-                <p className="text-2xl font-bold text-white mt-1">{xp}</p>
-                {nextReward && (
-                  <p className="text-xs text-zinc-500 mt-1">
-                    Próximo: {nextReward.costXp} XP
-                  </p>
-                )}
+                <p className="text-sm md:text-base text-white/60 mt-1">
+                  {remaining > 0
+                    ? `Restam ${formatNumber(remaining)} na meta`
+                    : isOverLimit
+                      ? "Limite ultrapassado!"
+                      : "Meta atingida! 🎉"}
+                </p>
               </div>
-              <div className="p-2 rounded-lg bg-violet-500/20">
-                <Sparkles className="h-5 w-5 text-violet-400" />
-              </div>
+              <Link href="/app/pedir">
+                <Button
+                  size="lg"
+                  className="gap-2 bg-white/10 hover:bg-white/20 backdrop-blur border-0"
+                >
+                  <Cigarette className="h-5 w-5" />
+                  Pedir
+                </Button>
+              </Link>
             </div>
+
+            <Progress
+              value={progressPercent}
+              className="h-2 md:h-3 bg-white/10"
+              indicatorClassName={isOverLimit ? "bg-red-500" : "bg-violet-400"}
+            />
           </CardContent>
         </Card>
 
-        <Card className="border-0 bg-zinc-900/80">
-          <CardContent className="p-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs text-zinc-500 uppercase tracking-wider">
-                  Esta semana
-                </p>
-                <p className="text-2xl font-bold text-white mt-1">
-                  {formatNumber(weekTotal)}
-                </p>
-                <p className="text-xs text-zinc-500 mt-1">
-                  Média: {formatNumber(average7Days)}/dia
-                </p>
-              </div>
-              <div className="p-2 rounded-lg bg-emerald-500/20">
-                <Target className="h-5 w-5 text-emerald-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Stats no lado direito no desktop */}
+        <div className="space-y-4">
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 gap-3">
+            <Card className="border-0 bg-zinc-900/80">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-xs text-zinc-500 uppercase tracking-wider">
+                      XP atual
+                    </p>
+                    <p className="text-2xl font-bold text-white mt-1">{xp}</p>
+                    {nextReward && (
+                      <p className="text-xs text-zinc-500 mt-1">
+                        Próximo: {nextReward.costXp} XP
+                      </p>
+                    )}
+                  </div>
+                  <div className="p-2 rounded-lg bg-violet-500/20">
+                    <Sparkles className="h-5 w-5 text-violet-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 bg-zinc-900/80">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-xs text-zinc-500 uppercase tracking-wider">
+                      Esta semana
+                    </p>
+                    <p className="text-2xl font-bold text-white mt-1">
+                      {formatNumber(weekTotal)}
+                    </p>
+                    <p className="text-xs text-zinc-500 mt-1">
+                      Média: {formatNumber(average7Days)}/dia
+                    </p>
+                  </div>
+                  <div className="p-2 rounded-lg bg-emerald-500/20">
+                    <Target className="h-5 w-5 text-emerald-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Próxima recompensa */}
+          {nextReward && (
+            <Card className="border-0 bg-zinc-900/80">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-2 rounded-xl bg-amber-500/20">
+                    <Gift className="h-6 w-6 text-amber-400" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs text-zinc-500 uppercase tracking-wider">
+                      Próxima recompensa
+                    </p>
+                    <p className="font-semibold text-white">
+                      {nextReward.title}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-white">
+                      {xp} / {nextReward.costXp} XP
+                    </p>
+                    <Progress
+                      value={(xp / nextReward.costXp) * 100}
+                      className="mt-1 h-1.5 w-20 bg-zinc-800"
+                      indicatorClassName="bg-amber-400"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
 
-      {/* Próxima recompensa */}
-      {nextReward && (
-        <Card className="border-0 bg-zinc-900/80">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-4">
-              <div className="p-2 rounded-xl bg-amber-500/20">
-                <Gift className="h-6 w-6 text-amber-400" />
-              </div>
-              <div className="flex-1">
-                <p className="text-xs text-zinc-500 uppercase tracking-wider">
-                  Próxima recompensa
-                </p>
-                <p className="font-semibold text-white">{nextReward.title}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-medium text-white">
-                  {xp} / {nextReward.costXp} XP
-                </p>
-                <Progress
-                  value={(xp / nextReward.costXp) * 100}
-                  className="mt-1 h-1.5 w-20 bg-zinc-800"
-                  indicatorClassName="bg-amber-400"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Ações rápidas */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Link href="/app/missoes">
           <Card className="border-0 bg-zinc-900/80 hover:bg-zinc-800/80 transition-colors cursor-pointer h-full">
             <CardContent className="p-4 flex flex-col items-center justify-center text-center">
@@ -193,6 +203,36 @@ export default async function DashboardPage() {
               />
               <p className="font-medium text-white text-sm">Loja</p>
               <p className="text-xs text-zinc-500">Troque seu XP</p>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/app/historico" className="hidden md:block">
+          <Card className="border-0 bg-zinc-900/80 hover:bg-zinc-800/80 transition-colors cursor-pointer h-full">
+            <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+              <Image
+                src="/images/guerreiro1.png"
+                alt="Histórico"
+                width={40}
+                height={40}
+                className="[image-rendering:pixelated] mb-2"
+              />
+              <p className="font-medium text-white text-sm">Histórico</p>
+              <p className="text-xs text-zinc-500">Seus pedidos</p>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/app/pedir" className="hidden md:block">
+          <Card className="border-0 bg-violet-950/50 hover:bg-violet-900/50 transition-colors cursor-pointer h-full">
+            <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+              <Image
+                src="/images/cigarroaceso.png"
+                alt="Pedir"
+                width={40}
+                height={40}
+                className="[image-rendering:pixelated] mb-2"
+              />
+              <p className="font-medium text-white text-sm">Pedir cigarro</p>
+              <p className="text-xs text-zinc-400">Faça um pedido</p>
             </CardContent>
           </Card>
         </Link>

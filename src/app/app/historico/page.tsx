@@ -102,7 +102,7 @@ export default function HistoricoPage() {
       </div>
 
       <Tabs defaultValue="cigarettes" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 bg-zinc-900 p-1">
+        <TabsList className="grid w-full grid-cols-2 bg-zinc-900 p-1 md:w-fit md:mx-0">
           <TabsTrigger
             value="cigarettes"
             className="gap-2 data-[state=active]:bg-zinc-800 data-[state=active]:text-white"
@@ -131,7 +131,7 @@ export default function HistoricoPage() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="cigarettes" className="mt-4 space-y-3">
+        <TabsContent value="cigarettes" className="mt-4">
           {cigarettes.length === 0 ? (
             <Card className="border-0 bg-zinc-900/80">
               <CardContent className="py-12 text-center">
@@ -146,49 +146,51 @@ export default function HistoricoPage() {
               </CardContent>
             </Card>
           ) : (
-            cigarettes.map((cig) => (
-              <Card key={cig.id} className="border-0 bg-zinc-900/80">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-zinc-800 flex items-center justify-center">
-                        <Image
-                          src="/images/cigarroaceso.png"
-                          alt="Cigarro"
-                          width={24}
-                          height={24}
-                          className="[image-rendering:pixelated]"
-                        />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {cigarettes.map((cig) => (
+                <Card key={cig.id} className="border-0 bg-zinc-900/80">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-xl bg-zinc-800 flex items-center justify-center">
+                          <Image
+                            src="/images/cigarroaceso.png"
+                            alt="Cigarro"
+                            width={24}
+                            height={24}
+                            className="[image-rendering:pixelated]"
+                          />
+                        </div>
+                        <div>
+                          <p className="font-medium text-white">
+                            {cig.amount === 0.5 ? "½ cigarro" : "1 cigarro"}
+                          </p>
+                          <p className="text-sm text-zinc-500">{cig.reason}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-white">
-                          {cig.amount === 0.5 ? "½ cigarro" : "1 cigarro"}
+                      <div className="text-right">
+                        <StatusBadge status={cig.status} />
+                        <p className="text-xs text-zinc-600 mt-1">
+                          {formatDate(cig.createdAt)}
                         </p>
-                        <p className="text-sm text-zinc-500">{cig.reason}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <StatusBadge status={cig.status} />
-                      <p className="text-xs text-zinc-600 mt-1">
-                        {formatDate(cig.createdAt)}
-                      </p>
-                    </div>
-                  </div>
-                  {cig.couponCode && cig.status === "PENDING" && (
-                    <Link
-                      href={`/app/cupom/${cig.couponCode}`}
-                      className="block mt-3 text-center text-sm text-violet-400 hover:text-violet-300"
-                    >
-                      Ver cupom: {formatCouponCode(cig.couponCode)}
-                    </Link>
-                  )}
-                </CardContent>
-              </Card>
-            ))
+                    {cig.couponCode && cig.status === "PENDING" && (
+                      <Link
+                        href={`/app/cupom/${cig.couponCode}`}
+                        className="block mt-3 text-center text-sm text-violet-400 hover:text-violet-300"
+                      >
+                        Ver cupom: {formatCouponCode(cig.couponCode)}
+                      </Link>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           )}
         </TabsContent>
 
-        <TabsContent value="rewards" className="mt-4 space-y-3">
+        <TabsContent value="rewards" className="mt-4">
           {rewards.length === 0 ? (
             <Card className="border-0 bg-zinc-900/80">
               <CardContent className="py-12 text-center">
@@ -203,44 +205,46 @@ export default function HistoricoPage() {
               </CardContent>
             </Card>
           ) : (
-            rewards.map((reward) => (
-              <Card key={reward.id} className="border-0 bg-zinc-900/80">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-violet-500/20 flex items-center justify-center">
-                        <Image
-                          src="/images/pocaomarrom1.png"
-                          alt="Recompensa"
-                          width={24}
-                          height={24}
-                          className="[image-rendering:pixelated]"
-                        />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {rewards.map((reward) => (
+                <Card key={reward.id} className="border-0 bg-zinc-900/80">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-xl bg-violet-500/20 flex items-center justify-center">
+                          <Image
+                            src="/images/pocaomarrom1.png"
+                            alt="Recompensa"
+                            width={24}
+                            height={24}
+                            className="[image-rendering:pixelated]"
+                          />
+                        </div>
+                        <div>
+                          <p className="font-medium text-white">
+                            {reward.rewardTitle}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-white">
-                          {reward.rewardTitle}
+                      <div className="text-right">
+                        <StatusBadge status={reward.status} />
+                        <p className="text-xs text-zinc-600 mt-1">
+                          {formatDate(reward.createdAt)}
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <StatusBadge status={reward.status} />
-                      <p className="text-xs text-zinc-600 mt-1">
-                        {formatDate(reward.createdAt)}
-                      </p>
-                    </div>
-                  </div>
-                  {reward.couponCode && reward.status === "PENDING" && (
-                    <Link
-                      href={`/app/cupom/${reward.couponCode}`}
-                      className="block mt-3 text-center text-sm text-violet-400 hover:text-violet-300"
-                    >
-                      Ver cupom: {formatCouponCode(reward.couponCode)}
-                    </Link>
-                  )}
-                </CardContent>
-              </Card>
-            ))
+                    {reward.couponCode && reward.status === "PENDING" && (
+                      <Link
+                        href={`/app/cupom/${reward.couponCode}`}
+                        className="block mt-3 text-center text-sm text-violet-400 hover:text-violet-300"
+                      >
+                        Ver cupom: {formatCouponCode(reward.couponCode)}
+                      </Link>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           )}
         </TabsContent>
       </Tabs>

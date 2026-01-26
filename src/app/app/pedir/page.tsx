@@ -129,7 +129,7 @@ export default function PedirPage() {
   const amountLabel = amount === "0.5" ? "½ cigarro" : "1 cigarro";
 
   return (
-    <div className="min-h-[70vh] flex flex-col pb-4">
+    <div className="min-h-[70vh] flex flex-col pb-4 max-w-2xl mx-auto">
       {/* Header com voltar */}
       <div className="flex items-center gap-3 mb-4">
         {step > 1 ? (

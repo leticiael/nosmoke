@@ -12,13 +12,7 @@ import {
 } from "@/actions/coupon";
 import { formatCouponCode } from "@/lib/coupon";
 import { useToast } from "@/components/ui/use-toast";
-import {
-  Loader2,
-  Search,
-  CheckCircle2,
-  XCircle,
-  Clock,
-} from "lucide-react";
+import { Loader2, Search, CheckCircle2, XCircle, Clock } from "lucide-react";
 import Image from "next/image";
 
 type PendingCoupon = {
@@ -136,8 +130,8 @@ export default function ValidarPage() {
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               className="font-mono text-lg tracking-wider bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
             />
-            <Button 
-              onClick={handleSearch} 
+            <Button
+              onClick={handleSearch}
               disabled={isPending}
               className="bg-violet-600 hover:bg-violet-700"
             >
@@ -175,7 +169,9 @@ export default function ValidarPage() {
                   />
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-white">{searchResult.userName}</p>
+                  <p className="font-medium text-white">
+                    {searchResult.userName}
+                  </p>
                   <p className="text-sm text-zinc-400">
                     {searchResult.type === "cigarette"
                       ? `${searchResult.amount === 0.5 ? "½" : "1"} cigarro - ${searchResult.reason}`
@@ -238,11 +234,16 @@ export default function ValidarPage() {
       {/* Lista de pendentes */}
       {totalPending > 0 && (
         <div className="space-y-3">
-          <h2 className="text-sm font-medium text-zinc-500 uppercase tracking-wider">Fila de espera</h2>
+          <h2 className="text-sm font-medium text-zinc-500 uppercase tracking-wider">
+            Fila de espera
+          </h2>
 
           {/* Cigarros */}
           {pendingCigs.map((coupon) => (
-            <Card key={coupon.id} className="border-0 bg-zinc-900/80 border-l-4 border-l-amber-500">
+            <Card
+              key={coupon.id}
+              className="border-0 bg-zinc-900/80 border-l-4 border-l-amber-500"
+            >
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <Image
@@ -253,7 +254,9 @@ export default function ValidarPage() {
                     className="[image-rendering:pixelated]"
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-white truncate">{coupon.userName}</p>
+                    <p className="font-medium text-white truncate">
+                      {coupon.userName}
+                    </p>
                     <p className="text-sm text-zinc-500">
                       {coupon.amount === 0.5 ? "½" : "1"} cigarro •{" "}
                       {coupon.reason}
@@ -296,7 +299,10 @@ export default function ValidarPage() {
 
           {/* Resgates */}
           {pendingRewards.map((coupon) => (
-            <Card key={coupon.id} className="border-0 bg-zinc-900/80 border-l-4 border-l-violet-500">
+            <Card
+              key={coupon.id}
+              className="border-0 bg-zinc-900/80 border-l-4 border-l-violet-500"
+            >
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <Image
@@ -307,7 +313,9 @@ export default function ValidarPage() {
                     className="[image-rendering:pixelated]"
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-white truncate">{coupon.userName}</p>
+                    <p className="font-medium text-white truncate">
+                      {coupon.userName}
+                    </p>
                     <p className="text-sm text-zinc-500">
                       {coupon.rewardTitle}
                     </p>
@@ -352,9 +360,7 @@ export default function ValidarPage() {
       {totalPending === 0 && !searchResult && (
         <div className="text-center py-12">
           <Clock className="h-12 w-12 text-zinc-700 mx-auto mb-4" />
-          <p className="text-zinc-500">
-            Nenhum cupom pendente no momento
-          </p>
+          <p className="text-zinc-500">Nenhum cupom pendente no momento</p>
         </div>
       )}
     </div>
