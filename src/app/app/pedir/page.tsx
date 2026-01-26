@@ -224,16 +224,9 @@ export default function PedirPage() {
                     cigarros
                   </span>
                 </div>
-                {dashboardData.todayRemaining > 0 ? (
-                  <p className="text-xs text-emerald-500 mt-1">
-                    ✓ Ainda pode pedir {dashboardData.todayRemaining} dentro da
-                    meta
-                  </p>
-                ) : (
-                  <p className="text-xs text-amber-500 mt-1">
-                    ⚠ Meta atingida - pedidos extras custam XP
-                  </p>
-                )}
+                <p className="text-xs text-zinc-400 mt-1">
+                  Cada cigarro custa XP da sua mesada diária
+                </p>
               </CardContent>
             </Card>
           )}
@@ -253,9 +246,9 @@ export default function PedirPage() {
               />
               <span className="text-4xl font-bold text-white">½</span>
               <span className="text-sm text-zinc-500 mt-1">meio cigarro</span>
-              <span className="text-xs text-amber-500/80 mt-2 flex items-center gap-1">
+              <span className="text-xs text-amber-400 mt-2 flex items-center gap-1">
                 <Image src="/images/hearth.png" alt="XP" width={12} height={12} className="[image-rendering:pixelated]" />
-                -15 XP se extra
+                -15 XP
               </span>
             </button>
 
@@ -274,9 +267,9 @@ export default function PedirPage() {
               <span className="text-sm text-zinc-500 mt-1">
                 cigarro inteiro
               </span>
-              <span className="text-xs text-amber-500/80 mt-2 flex items-center gap-1">
+              <span className="text-xs text-amber-400 mt-2 flex items-center gap-1">
                 <Image src="/images/hearth.png" alt="XP" width={12} height={12} className="[image-rendering:pixelated]" />
-                -30 XP se extra
+                -30 XP
               </span>
             </button>
           </div>
@@ -285,8 +278,8 @@ export default function PedirPage() {
           <Card className="border-0 bg-zinc-800/50 mt-2">
             <CardContent className="p-3">
               <p className="text-xs text-zinc-400 text-center">
-                Pedidos dentro da meta = <span className="text-emerald-400">grátis</span> | 
-                Pedidos extras custam <span className="text-amber-400">30 XP por cigarro</span>
+                Você recebe <span className="text-teal-400">100 XP de mesada</span> por dia.
+                Cada cigarro custa <span className="text-amber-400">30 XP</span>.
               </p>
             </CardContent>
           </Card>
