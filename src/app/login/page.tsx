@@ -99,7 +99,7 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              className="w-full bg-violet-600 hover:bg-violet-700"
+              className="w-full bg-teal-600 hover:bg-teal-700"
               size="lg"
               disabled={isLoading}
             >

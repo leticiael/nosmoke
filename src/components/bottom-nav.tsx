@@ -37,7 +37,7 @@ export function BottomNav() {
               <div
                 className={cn(
                   "p-1 rounded-lg transition-colors",
-                  isActive && "bg-violet-500/20",
+                  isActive && "bg-teal-500/20",
                 )}
               >
                 <Image

@@ -133,7 +133,7 @@ export default function ValidarPage() {
             <Button
               onClick={handleSearch}
               disabled={isPending}
-              className="bg-violet-600 hover:bg-violet-700"
+              className="bg-teal-600 hover:bg-teal-700"
             >
               {isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -301,7 +301,7 @@ export default function ValidarPage() {
           {pendingRewards.map((coupon) => (
             <Card
               key={coupon.id}
-              className="border-0 bg-zinc-900/80 border-l-4 border-l-violet-500"
+              className="border-0 bg-zinc-900/80 border-l-4 border-l-teal-500"
             >
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">

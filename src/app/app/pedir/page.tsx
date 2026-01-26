@@ -128,6 +128,41 @@ export default function PedirPage() {
 
   const amountLabel = amount === "0.5" ? "½ cigarro" : "1 cigarro";
 
+  // Tela de loading enquanto envia o pedido
+  if (isPending) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-6">
+        <Image
+          src="/images/girl.png"
+          alt="Enviando pedido"
+          width={120}
+          height={120}
+          className="[image-rendering:pixelated] animate-pulse"
+        />
+        <div className="text-center">
+          <p className="text-lg font-medium text-white">Enviando pedido...</p>
+          <p className="text-sm text-zinc-500 mt-1">
+            A Letícia vai receber o pedido 💜
+          </p>
+        </div>
+        <div className="flex gap-1">
+          <div
+            className="w-2 h-2 rounded-full bg-teal-500 animate-bounce"
+            style={{ animationDelay: "0ms" }}
+          />
+          <div
+            className="w-2 h-2 rounded-full bg-teal-500 animate-bounce"
+            style={{ animationDelay: "150ms" }}
+          />
+          <div
+            className="w-2 h-2 rounded-full bg-teal-500 animate-bounce"
+            style={{ animationDelay: "300ms" }}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-[70vh] flex flex-col pb-4 max-w-2xl mx-auto">
       {/* Header com voltar */}
@@ -169,7 +204,7 @@ export default function PedirPage() {
             key={s}
             className={cn(
               "h-1.5 flex-1 rounded-full transition-colors",
-              s <= step ? "bg-violet-500" : "bg-zinc-800",
+              s <= step ? "bg-teal-500" : "bg-zinc-800",
             )}
           />
         ))}
@@ -207,7 +242,7 @@ export default function PedirPage() {
           <div className="grid grid-cols-2 gap-4 flex-1">
             <button
               onClick={() => handleSelectAmount("0.5")}
-              className="flex flex-col items-center justify-center rounded-2xl border-2 border-zinc-800 bg-zinc-900/80 p-6 hover:border-violet-500 hover:bg-violet-950/30 transition-all active:scale-95"
+              className="flex flex-col items-center justify-center rounded-2xl border-2 border-zinc-800 bg-zinc-900/80 p-6 hover:border-teal-500 hover:bg-teal-950/30 transition-all active:scale-95"
             >
               <Image
                 src="/images/cigarroapagado,.png"
@@ -222,7 +257,7 @@ export default function PedirPage() {
 
             <button
               onClick={() => handleSelectAmount("1.0")}
-              className="flex flex-col items-center justify-center rounded-2xl border-2 border-zinc-800 bg-zinc-900/80 p-6 hover:border-violet-500 hover:bg-violet-950/30 transition-all active:scale-95"
+              className="flex flex-col items-center justify-center rounded-2xl border-2 border-zinc-800 bg-zinc-900/80 p-6 hover:border-teal-500 hover:bg-teal-950/30 transition-all active:scale-95"
             >
               <Image
                 src="/images/cigarroaceso.png"
@@ -271,7 +306,7 @@ export default function PedirPage() {
                 disabled={extraInfo?.isExtra && !extraInfo.canAfford}
                 className={cn(
                   "w-full text-left p-4 rounded-xl border-2 border-zinc-800 bg-zinc-900/80 transition-all",
-                  "hover:border-violet-500 hover:bg-violet-950/30 active:scale-[0.98]",
+                  "hover:border-teal-500 hover:bg-teal-950/30 active:scale-[0.98]",
                   "disabled:opacity-50 disabled:cursor-not-allowed",
                 )}
               >
@@ -317,7 +352,7 @@ export default function PedirPage() {
           <div className="mt-auto space-y-3">
             <Button
               size="lg"
-              className="w-full h-14 text-lg bg-violet-600 hover:bg-violet-700"
+              className="w-full h-14 text-lg bg-teal-600 hover:bg-teal-700"
               onClick={handleSubmit}
               disabled={isPending}
             >

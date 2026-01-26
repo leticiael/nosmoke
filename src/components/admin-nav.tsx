@@ -43,7 +43,7 @@ export function AdminNav({ userName }: { userName: string }) {
               height={28}
               className="[image-rendering:pixelated]"
             />
-            <span className="font-bold text-lg text-violet-400">Admin</span>
+            <span className="font-bold text-lg text-teal-400">Admin</span>
           </Link>
           <Button
             variant="ghost"
@@ -73,7 +73,7 @@ export function AdminNav({ userName }: { userName: string }) {
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 transition-colors",
                     isActive
-                      ? "bg-violet-600 text-white"
+                      ? "bg-teal-600 text-white"
                       : "text-zinc-400 hover:bg-zinc-800 hover:text-white",
                   )}
                 >
@@ -106,7 +106,7 @@ export function AdminNav({ userName }: { userName: string }) {
                 href={item.href}
                 className={cn(
                   "flex flex-col items-center gap-1 px-3 py-1 rounded-lg transition-colors",
-                  isActive ? "text-violet-400" : "text-zinc-500",
+                  isActive ? "text-teal-400" : "text-zinc-500",
                 )}
               >
                 <Icon className="h-5 w-5" />
@@ -124,14 +124,14 @@ export function AdminNav({ userName }: { userName: string }) {
           <div className="flex h-16 items-center border-b border-zinc-800 px-6">
             <Link href="/admin" className="flex items-center gap-2">
               <Image
-                src="/images/letfeliz.png"
+                src="/images/girl.png"
                 alt="Admin"
                 width={32}
                 height={32}
                 className="[image-rendering:pixelated]"
               />
               <span className="text-xl font-bold text-white">NoSmoke</span>
-              <span className="text-xs bg-violet-500/20 text-violet-400 px-2 py-0.5 rounded">
+              <span className="text-xs bg-teal-500/20 text-teal-400 px-2 py-0.5 rounded">
                 Admin
               </span>
             </Link>
@@ -149,7 +149,7 @@ export function AdminNav({ userName }: { userName: string }) {
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 transition-colors",
                     isActive
-                      ? "bg-violet-600 text-white"
+                      ? "bg-teal-600 text-white"
                       : "text-zinc-400 hover:bg-zinc-800 hover:text-white",
                   )}
                 >
@@ -163,8 +163,8 @@ export function AdminNav({ userName }: { userName: string }) {
           {/* User info */}
           <div className="border-t border-zinc-800 p-4">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full bg-violet-500/20 flex items-center justify-center">
-                <span className="text-sm font-medium text-violet-400">
+              <div className="h-9 w-9 rounded-full bg-teal-500/20 flex items-center justify-center">
+                <span className="text-sm font-medium text-teal-400">
                   {userName.charAt(0).toUpperCase()}
                 </span>
               </div>

@@ -94,12 +94,13 @@ export default function LojaPage() {
 
   return (
     <div className="space-y-4 pb-4">
-      <div className="flex items-center gap-3">
+      {/* Header com Maga Vendedora */}
+      <div className="flex items-center gap-4">
         <Image
-          src="/images/pocaomarrom1.png"
-          alt="Loja"
-          width={40}
-          height={40}
+          src="/images/healer.png"
+          alt="Maga Vendedora"
+          width={64}
+          height={64}
           className="[image-rendering:pixelated]"
         />
         <div>
@@ -122,7 +123,7 @@ export default function LojaPage() {
                 <p className="text-3xl font-bold text-white">{userXp} XP</p>
               </div>
               <Image
-                src="/images/pocaomarrom1.png"
+                src="/images/hearth.png"
                 alt="XP"
                 width={72}
                 height={72}

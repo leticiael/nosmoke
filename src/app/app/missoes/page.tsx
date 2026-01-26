@@ -35,11 +35,11 @@ export default async function MissoesPage() {
       </div>
 
       {/* Info card */}
-      <Card className="border-0 bg-violet-950/30">
+      <Card className="border-0 bg-teal-950/30">
         <CardContent className="flex items-start gap-3 p-4">
-          <Info className="h-5 w-5 text-violet-400 shrink-0 mt-0.5" />
+          <Info className="h-5 w-5 text-teal-400 shrink-0 mt-0.5" />
           <div className="text-sm">
-            <p className="font-medium text-violet-400">Como funciona</p>
+            <p className="font-medium text-teal-400">Como funciona</p>
             <p className="text-zinc-400">
               Diárias resetam à meia-noite. Semanais resetam no domingo.
             </p>

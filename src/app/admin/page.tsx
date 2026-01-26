@@ -195,7 +195,7 @@ export default function AdminPage() {
               <p className="text-xs text-zinc-500 uppercase tracking-wider">
                 Resgates
               </p>
-              <p className="text-2xl font-bold text-violet-400">
+              <p className="text-2xl font-bold text-teal-400">
                 {stats.pendingRedemptions}
               </p>
             </CardContent>
@@ -239,7 +239,7 @@ export default function AdminPage() {
                         <Badge
                           className={
                             request.amount === 1
-                              ? "bg-violet-500/20 text-violet-400 border-violet-500/30"
+                              ? "bg-teal-500/20 text-teal-400 border-teal-500/30"
                               : "bg-zinc-800 text-zinc-400 border-zinc-700"
                           }
                         >
@@ -318,7 +318,7 @@ export default function AdminPage() {
                       <p className="text-sm text-zinc-500">
                         {redemption.userName} • {redemption.createdAt}
                       </p>
-                      <Badge className="bg-violet-500/20 text-violet-400 border-violet-500/30">
+                      <Badge className="bg-teal-500/20 text-teal-400 border-teal-500/30">
                         {redemption.costXp} XP
                       </Badge>
                     </div>

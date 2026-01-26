@@ -3,8 +3,11 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { unstable_noStore as noStore } from "next/cache";
 
 export async function getCouponDetails(code: string) {
+  noStore(); // Garante que não usa cache
+
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Não autorizado" };
@@ -99,6 +102,7 @@ export async function validateCoupon(
 
     revalidatePath("/admin");
     revalidatePath("/app");
+    revalidatePath(`/app/cupom/${code}`);
     return { success: true, type: "cigarette" };
   }
 
@@ -122,6 +126,7 @@ export async function validateCoupon(
 
     revalidatePath("/admin");
     revalidatePath("/app");
+    revalidatePath(`/app/cupom/${code}`);
     return { success: true, type: "reward" };
   }
 

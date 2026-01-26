@@ -80,7 +80,7 @@ export default function HistoricoPage() {
   if (loading) {
     return (
       <div className="min-h-[50vh] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-teal-500" />
       </div>
     );
   }
@@ -178,7 +178,7 @@ export default function HistoricoPage() {
                     {cig.couponCode && cig.status === "PENDING" && (
                       <Link
                         href={`/app/cupom/${cig.couponCode}`}
-                        className="block mt-3 text-center text-sm text-violet-400 hover:text-violet-300"
+                        className="block mt-3 text-center text-sm text-teal-400 hover:text-teal-300"
                       >
                         Ver cupom: {formatCouponCode(cig.couponCode)}
                       </Link>
@@ -211,7 +211,7 @@ export default function HistoricoPage() {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-violet-500/20 flex items-center justify-center">
+                        <div className="h-10 w-10 rounded-xl bg-teal-500/20 flex items-center justify-center">
                           <Image
                             src="/images/pocaomarrom1.png"
                             alt="Recompensa"
@@ -236,7 +236,7 @@ export default function HistoricoPage() {
                     {reward.couponCode && reward.status === "PENDING" && (
                       <Link
                         href={`/app/cupom/${reward.couponCode}`}
-                        className="block mt-3 text-center text-sm text-violet-400 hover:text-violet-300"
+                        className="block mt-3 text-center text-sm text-teal-400 hover:text-teal-300"
                       >
                         Ver cupom: {formatCouponCode(reward.couponCode)}
                       </Link>

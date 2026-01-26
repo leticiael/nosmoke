@@ -48,7 +48,7 @@ export function MissionCard({
                   ? "bg-emerald-500/20"
                   : isFailed
                     ? "bg-red-500/20"
-                    : "bg-violet-500/20",
+                    : "bg-teal-500/20",
               )}
             >
               {isCompleted ? (
@@ -71,7 +71,7 @@ export function MissionCard({
                     "text-xs",
                     type === "DAILY"
                       ? "bg-zinc-800 text-zinc-400 border-zinc-700"
-                      : "bg-violet-500/20 text-violet-400 border-violet-500/30",
+                      : "bg-teal-500/20 text-teal-400 border-teal-500/30",
                   )}
                 >
                   {type === "DAILY" ? "Diária" : "Semanal"}
@@ -81,7 +81,7 @@ export function MissionCard({
             </div>
           </div>
           <div className="text-right shrink-0">
-            <span className="font-bold text-violet-400">+{xpReward} XP</span>
+            <span className="font-bold text-teal-400">+{xpReward} XP</span>
           </div>
         </div>
 
@@ -96,7 +96,7 @@ export function MissionCard({
             <Progress
               value={progressPercent}
               className="h-2 bg-zinc-800"
-              indicatorClassName="bg-violet-500"
+              indicatorClassName="bg-teal-500"
             />
           </div>
         )}

@@ -20,7 +20,7 @@ export default async function AppLayout({
   return (
     <div className="min-h-screen bg-zinc-950">
       <UserHeader userName={session.user.name} xp={xp} />
-      <main className="mx-auto max-w-lg md:max-w-4xl lg:max-w-6xl px-4 pb-24 pt-4">
+      <main className="mx-auto max-w-lg md:max-w-4xl lg:max-w-6xl px-4 md:px-8 pb-24 md:pb-8 pt-6 md:pt-10">
         {children}
       </main>
       <BottomNav />
