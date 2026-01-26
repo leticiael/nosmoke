@@ -6,15 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getUserHistory } from "@/actions/history";
 import { formatCouponCode } from "@/lib/coupon";
-import {
-  Cigarette,
-  Gift,
-  Clock,
-  CheckCircle2,
-  XCircle,
-  Loader2,
-} from "lucide-react";
+import { Clock, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 type CigHistory = {
   id: string;
@@ -38,10 +32,7 @@ type RewardHistory = {
 function StatusBadge({ status }: { status: string }) {
   if (status === "PENDING") {
     return (
-      <Badge
-        variant="outline"
-        className="bg-amber-500/10 text-amber-500 border-amber-500/30"
-      >
+      <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">
         <Clock className="h-3 w-3 mr-1" />
         Pendente
       </Badge>
@@ -49,20 +40,14 @@ function StatusBadge({ status }: { status: string }) {
   }
   if (status === "APPROVED" || status === "VALIDATED") {
     return (
-      <Badge
-        variant="outline"
-        className="bg-green-500/10 text-green-500 border-green-500/30"
-      >
+      <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
         <CheckCircle2 className="h-3 w-3 mr-1" />
         Aprovado
       </Badge>
     );
   }
   return (
-    <Badge
-      variant="outline"
-      className="bg-red-500/10 text-red-500 border-red-500/30"
-    >
+    <Badge className="bg-red-500/20 text-red-400 border-red-500/30">
       <XCircle className="h-3 w-3 mr-1" />
       Rejeitado
     </Badge>
@@ -95,57 +80,96 @@ export default function HistoricoPage() {
   if (loading) {
     return (
       <div className="min-h-[50vh] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Histórico</h1>
-        <p className="text-muted-foreground">Seus pedidos e resgates</p>
+    <div className="space-y-4 pb-4">
+      <div className="flex items-center gap-3">
+        <Image
+          src="/images/soldadodfoof.png"
+          alt="Histórico"
+          width={40}
+          height={40}
+          className="[image-rendering:pixelated]"
+        />
+        <div>
+          <h1 className="text-xl font-bold text-white">Histórico</h1>
+          <p className="text-sm text-zinc-500">Seus pedidos e resgates</p>
+        </div>
       </div>
 
       <Tabs defaultValue="cigarettes" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="cigarettes" className="gap-2">
-            <Cigarette className="h-4 w-4" />
+        <TabsList className="grid w-full grid-cols-2 bg-zinc-900 p-1">
+          <TabsTrigger
+            value="cigarettes"
+            className="gap-2 data-[state=active]:bg-zinc-800 data-[state=active]:text-white"
+          >
+            <Image
+              src="/images/cigarroapagado,.png"
+              alt="Cigarros"
+              width={16}
+              height={16}
+              className="[image-rendering:pixelated]"
+            />
             Cigarros
           </TabsTrigger>
-          <TabsTrigger value="rewards" className="gap-2">
-            <Gift className="h-4 w-4" />
+          <TabsTrigger
+            value="rewards"
+            className="gap-2 data-[state=active]:bg-zinc-800 data-[state=active]:text-white"
+          >
+            <Image
+              src="/images/pocaomarrom1.png"
+              alt="Resgates"
+              width={16}
+              height={16}
+              className="[image-rendering:pixelated]"
+            />
             Resgates
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="cigarettes" className="mt-4 space-y-3">
           {cigarettes.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Cigarette className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Nenhum pedido ainda</p>
-            </div>
+            <Card className="border-0 bg-zinc-900/80">
+              <CardContent className="py-12 text-center">
+                <Image
+                  src="/images/cigarroapagado,.png"
+                  alt="Nenhum pedido"
+                  width={48}
+                  height={48}
+                  className="[image-rendering:pixelated] mx-auto mb-4 opacity-50"
+                />
+                <p className="text-zinc-500">Nenhum pedido ainda</p>
+              </CardContent>
+            </Card>
           ) : (
             cigarettes.map((cig) => (
-              <Card key={cig.id}>
+              <Card key={cig.id} className="border-0 bg-zinc-900/80">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                        <Cigarette className="h-5 w-5 text-muted-foreground" />
+                      <div className="h-10 w-10 rounded-xl bg-zinc-800 flex items-center justify-center">
+                        <Image
+                          src="/images/cigarroaceso.png"
+                          alt="Cigarro"
+                          width={24}
+                          height={24}
+                          className="[image-rendering:pixelated]"
+                        />
                       </div>
                       <div>
-                        <p className="font-medium">
+                        <p className="font-medium text-white">
                           {cig.amount === 0.5 ? "½ cigarro" : "1 cigarro"}
                         </p>
-                        <p className="text-sm text-muted-foreground">
-                          {cig.reason}
-                        </p>
+                        <p className="text-sm text-zinc-500">{cig.reason}</p>
                       </div>
                     </div>
                     <div className="text-right">
                       <StatusBadge status={cig.status} />
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-xs text-zinc-600 mt-1">
                         {formatDate(cig.createdAt)}
                       </p>
                     </div>
@@ -153,7 +177,7 @@ export default function HistoricoPage() {
                   {cig.couponCode && cig.status === "PENDING" && (
                     <Link
                       href={`/app/cupom/${cig.couponCode}`}
-                      className="block mt-3 text-center text-sm text-primary hover:underline"
+                      className="block mt-3 text-center text-sm text-violet-400 hover:text-violet-300"
                     >
                       Ver cupom: {formatCouponCode(cig.couponCode)}
                     </Link>
@@ -166,26 +190,42 @@ export default function HistoricoPage() {
 
         <TabsContent value="rewards" className="mt-4 space-y-3">
           {rewards.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Gift className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Nenhum resgate ainda</p>
-            </div>
+            <Card className="border-0 bg-zinc-900/80">
+              <CardContent className="py-12 text-center">
+                <Image
+                  src="/images/pocaomarrom1.png"
+                  alt="Nenhum resgate"
+                  width={48}
+                  height={48}
+                  className="[image-rendering:pixelated] mx-auto mb-4 opacity-50"
+                />
+                <p className="text-zinc-500">Nenhum resgate ainda</p>
+              </CardContent>
+            </Card>
           ) : (
             rewards.map((reward) => (
-              <Card key={reward.id}>
+              <Card key={reward.id} className="border-0 bg-zinc-900/80">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Gift className="h-5 w-5 text-primary" />
+                      <div className="h-10 w-10 rounded-xl bg-violet-500/20 flex items-center justify-center">
+                        <Image
+                          src="/images/pocaomarrom1.png"
+                          alt="Recompensa"
+                          width={24}
+                          height={24}
+                          className="[image-rendering:pixelated]"
+                        />
                       </div>
                       <div>
-                        <p className="font-medium">{reward.rewardTitle}</p>
+                        <p className="font-medium text-white">
+                          {reward.rewardTitle}
+                        </p>
                       </div>
                     </div>
                     <div className="text-right">
                       <StatusBadge status={reward.status} />
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-xs text-zinc-600 mt-1">
                         {formatDate(reward.createdAt)}
                       </p>
                     </div>
@@ -193,7 +233,7 @@ export default function HistoricoPage() {
                   {reward.couponCode && reward.status === "PENDING" && (
                     <Link
                       href={`/app/cupom/${reward.couponCode}`}
-                      className="block mt-3 text-center text-sm text-primary hover:underline"
+                      className="block mt-3 text-center text-sm text-violet-400 hover:text-violet-300"
                     >
                       Ver cupom: {formatCouponCode(reward.couponCode)}
                     </Link>

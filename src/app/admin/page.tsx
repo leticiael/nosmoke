@@ -150,98 +150,121 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Painel Admin</h1>
-        <p className="text-muted-foreground">Gerencie pedidos e recompensas</p>
+        <h1 className="text-2xl font-bold text-white">Painel Admin</h1>
+        <p className="text-zinc-500">Gerencie pedidos e recompensas</p>
       </div>
 
       {/* Stats */}
       {stats && (
-        <div className="grid grid-cols-4 gap-4">
-          <Card>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Card className="border-0 bg-zinc-900/80">
             <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground">Pendentes</p>
-              <p className="text-2xl font-bold">{stats.pendingRequests}</p>
+              <p className="text-xs text-zinc-500 uppercase tracking-wider">
+                Pendentes
+              </p>
+              <p className="text-2xl font-bold text-white">
+                {stats.pendingRequests}
+              </p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-0 bg-zinc-900/80">
             <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground">Hoje</p>
-              <p className="text-2xl font-bold">
+              <p className="text-xs text-zinc-500 uppercase tracking-wider">
+                Hoje
+              </p>
+              <p className="text-2xl font-bold text-white">
                 {formatNumber(stats.todayTotal)}/
                 {formatNumber(stats.todayLimit)}
               </p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-0 bg-zinc-900/80">
             <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground">Aprovados hoje</p>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-xs text-zinc-500 uppercase tracking-wider">
+                Aprovados
+              </p>
+              <p className="text-2xl font-bold text-emerald-400">
                 {stats.todayApproved}
               </p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-0 bg-zinc-900/80">
             <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground">Resgates</p>
-              <p className="text-2xl font-bold">{stats.pendingRedemptions}</p>
+              <p className="text-xs text-zinc-500 uppercase tracking-wider">
+                Resgates
+              </p>
+              <p className="text-2xl font-bold text-violet-400">
+                {stats.pendingRedemptions}
+              </p>
             </CardContent>
           </Card>
         </div>
       )}
 
       <Tabs defaultValue="requests">
-        <TabsList>
-          <TabsTrigger value="requests" className="gap-2">
+        <TabsList className="bg-zinc-900 p-1">
+          <TabsTrigger
+            value="requests"
+            className="gap-2 data-[state=active]:bg-zinc-800 data-[state=active]:text-white"
+          >
             <Cigarette className="h-4 w-4" />
             Pedidos ({requests.length})
           </TabsTrigger>
-          <TabsTrigger value="redemptions" className="gap-2">
+          <TabsTrigger
+            value="redemptions"
+            className="gap-2 data-[state=active]:bg-zinc-800 data-[state=active]:text-white"
+          >
             <Gift className="h-4 w-4" />
             Resgates ({redemptions.length})
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="requests" className="space-y-4 mt-6">
+        <TabsContent value="requests" className="space-y-3 mt-4">
           {requests.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                <ClipboardList className="h-12 w-12 mb-4 opacity-50" />
-                <p>Nenhum pedido pendente</p>
+            <Card className="border-0 bg-zinc-900/80">
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <ClipboardList className="h-12 w-12 mb-4 text-zinc-700" />
+                <p className="text-zinc-500">Nenhum pedido pendente</p>
               </CardContent>
             </Card>
           ) : (
             requests.map((request) => (
-              <Card key={request.id}>
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-2">
+              <Card key={request.id} className="border-0 bg-zinc-900/80">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-2 flex-1 min-w-0">
                       <div className="flex items-center gap-3">
                         <Badge
-                          variant={
-                            request.amount === 1 ? "default" : "secondary"
+                          className={
+                            request.amount === 1
+                              ? "bg-violet-500/20 text-violet-400 border-violet-500/30"
+                              : "bg-zinc-800 text-zinc-400 border-zinc-700"
                           }
-                          className="text-lg px-3 py-1"
                         >
                           {request.amount === 1 ? "1" : "½"}
                         </Badge>
-                        <div>
-                          <p className="font-medium">{request.userName}</p>
-                          <p className="text-sm text-muted-foreground">
+                        <div className="min-w-0">
+                          <p className="font-medium text-white truncate">
+                            {request.userName}
+                          </p>
+                          <p className="text-xs text-zinc-500">
                             {request.createdAt}
                           </p>
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        <Badge variant="outline">{request.reason1}</Badge>
-                        <Badge variant="outline">{request.reason2}</Badge>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge className="bg-zinc-800 text-zinc-400 border-zinc-700 text-xs">
+                          {request.reason1}
+                        </Badge>
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 shrink-0">
                       <Button
                         variant="outline"
                         size="icon"
+                        className="border-zinc-700 hover:bg-red-950 hover:text-red-400 hover:border-red-500/30"
                         onClick={() =>
                           handleRequestAction(request.id, "reject")
                         }
@@ -254,7 +277,7 @@ export default function AdminPage() {
                         )}
                       </Button>
                       <Button
-                        variant="success"
+                        className="bg-emerald-600 hover:bg-emerald-700"
                         onClick={() =>
                           handleRequestAction(request.id, "approve")
                         }
@@ -275,30 +298,35 @@ export default function AdminPage() {
           )}
         </TabsContent>
 
-        <TabsContent value="redemptions" className="space-y-4 mt-6">
+        <TabsContent value="redemptions" className="space-y-3 mt-4">
           {redemptions.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                <Gift className="h-12 w-12 mb-4 opacity-50" />
-                <p>Nenhum resgate pendente</p>
+            <Card className="border-0 bg-zinc-900/80">
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <Gift className="h-12 w-12 mb-4 text-zinc-700" />
+                <p className="text-zinc-500">Nenhum resgate pendente</p>
               </CardContent>
             </Card>
           ) : (
             redemptions.map((redemption) => (
-              <Card key={redemption.id}>
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                      <p className="font-medium">{redemption.rewardTitle}</p>
-                      <p className="text-sm text-muted-foreground">
+              <Card key={redemption.id} className="border-0 bg-zinc-900/80">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1 flex-1 min-w-0">
+                      <p className="font-medium text-white truncate">
+                        {redemption.rewardTitle}
+                      </p>
+                      <p className="text-sm text-zinc-500">
                         {redemption.userName} • {redemption.createdAt}
                       </p>
-                      <Badge variant="secondary">{redemption.costXp} XP</Badge>
+                      <Badge className="bg-violet-500/20 text-violet-400 border-violet-500/30">
+                        {redemption.costXp} XP
+                      </Badge>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 shrink-0">
                       <Button
                         variant="outline"
                         size="icon"
+                        className="border-zinc-700 hover:bg-red-950 hover:text-red-400 hover:border-red-500/30"
                         onClick={() =>
                           handleRedemptionAction(redemption.id, "reject")
                         }
@@ -311,7 +339,7 @@ export default function AdminPage() {
                         )}
                       </Button>
                       <Button
-                        variant="success"
+                        className="bg-emerald-600 hover:bg-emerald-700"
                         onClick={() =>
                           handleRedemptionAction(redemption.id, "validate")
                         }

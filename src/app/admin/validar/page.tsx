@@ -17,11 +17,9 @@ import {
   Search,
   CheckCircle2,
   XCircle,
-  Cigarette,
-  Gift,
   Clock,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 type PendingCoupon = {
   id: string;
@@ -119,8 +117,8 @@ export default function ValidarPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Validar Cupons</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl font-bold text-white">Validar Cupons</h1>
+        <p className="text-zinc-500">
           {totalPending > 0
             ? `${totalPending} cupom(s) pendente(s)`
             : "Nenhum cupom pendente"}
@@ -128,7 +126,7 @@ export default function ValidarPage() {
       </div>
 
       {/* Busca por código */}
-      <Card>
+      <Card className="border-0 bg-zinc-900/80">
         <CardContent className="p-4">
           <div className="flex gap-2">
             <Input
@@ -136,9 +134,13 @@ export default function ValidarPage() {
               value={searchCode}
               onChange={(e) => setSearchCode(e.target.value.toUpperCase())}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              className="font-mono text-lg tracking-wider"
+              className="font-mono text-lg tracking-wider bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
             />
-            <Button onClick={handleSearch} disabled={isPending}>
+            <Button 
+              onClick={handleSearch} 
+              disabled={isPending}
+              className="bg-violet-600 hover:bg-violet-700"
+            >
               {isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
@@ -149,35 +151,46 @@ export default function ValidarPage() {
 
           {/* Resultado da busca */}
           {searchError && (
-            <p className="text-destructive text-sm mt-3">{searchError}</p>
+            <p className="text-red-400 text-sm mt-3">{searchError}</p>
           )}
 
           {searchResult && (
-            <div className="mt-4 p-4 bg-muted rounded-lg">
+            <div className="mt-4 p-4 bg-zinc-800 rounded-lg">
               <div className="flex items-center gap-3 mb-3">
                 {searchResult.type === "cigarette" ? (
-                  <Cigarette className="h-5 w-5" />
+                  <Image
+                    src="/images/cigarroaceso.png"
+                    alt="Cigarro"
+                    width={24}
+                    height={24}
+                    className="[image-rendering:pixelated]"
+                  />
                 ) : (
-                  <Gift className="h-5 w-5" />
+                  <Image
+                    src="/images/pocaomarrom1.png"
+                    alt="Recompensa"
+                    width={24}
+                    height={24}
+                    className="[image-rendering:pixelated]"
+                  />
                 )}
-                <div>
-                  <p className="font-medium">{searchResult.userName}</p>
-                  <p className="text-sm text-muted-foreground">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-white">{searchResult.userName}</p>
+                  <p className="text-sm text-zinc-400">
                     {searchResult.type === "cigarette"
                       ? `${searchResult.amount === 0.5 ? "½" : "1"} cigarro - ${searchResult.reason}`
                       : searchResult.rewardTitle}
                   </p>
                 </div>
                 <Badge
-                  variant={
+                  className={
                     searchResult.status === "PENDING"
-                      ? "outline"
+                      ? "bg-amber-500/20 text-amber-400 border-amber-500/30"
                       : searchResult.status === "APPROVED" ||
                           searchResult.status === "VALIDATED"
-                        ? "default"
-                        : "destructive"
+                        ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                        : "bg-red-500/20 text-red-400 border-red-500/30"
                   }
-                  className="ml-auto"
                 >
                   {searchResult.status === "PENDING"
                     ? "Pendente"
@@ -191,7 +204,7 @@ export default function ValidarPage() {
               {searchResult.status === "PENDING" && (
                 <div className="flex gap-2">
                   <Button
-                    className="flex-1"
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                     onClick={() =>
                       handleValidate(searchResult.couponCode, "approve")
                     }
@@ -206,7 +219,7 @@ export default function ValidarPage() {
                   </Button>
                   <Button
                     variant="outline"
-                    className="flex-1"
+                    className="flex-1 border-zinc-700 hover:bg-red-950 hover:text-red-400 hover:border-red-500/30"
                     onClick={() =>
                       handleValidate(searchResult.couponCode, "reject")
                     }
@@ -224,28 +237,35 @@ export default function ValidarPage() {
 
       {/* Lista de pendentes */}
       {totalPending > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Fila de espera</h2>
+        <div className="space-y-3">
+          <h2 className="text-sm font-medium text-zinc-500 uppercase tracking-wider">Fila de espera</h2>
 
           {/* Cigarros */}
           {pendingCigs.map((coupon) => (
-            <Card key={coupon.id} className="border-l-4 border-l-amber-400">
+            <Card key={coupon.id} className="border-0 bg-zinc-900/80 border-l-4 border-l-amber-500">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <Cigarette className="h-5 w-5 text-muted-foreground" />
+                  <Image
+                    src="/images/cigarroaceso.png"
+                    alt="Cigarro"
+                    width={24}
+                    height={24}
+                    className="[image-rendering:pixelated]"
+                  />
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{coupon.userName}</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="font-medium text-white truncate">{coupon.userName}</p>
+                    <p className="text-sm text-zinc-500">
                       {coupon.amount === 0.5 ? "½" : "1"} cigarro •{" "}
                       {coupon.reason}
                     </p>
-                    <p className="text-xs font-mono text-muted-foreground mt-1">
+                    <p className="text-xs font-mono text-zinc-600 mt-1">
                       {formatCouponCode(coupon.couponCode)}
                     </p>
                   </div>
                   <div className="flex flex-col gap-1">
                     <Button
                       size="sm"
+                      className="bg-emerald-600 hover:bg-emerald-700"
                       onClick={() =>
                         handleValidate(coupon.couponCode, "approve")
                       }
@@ -260,6 +280,7 @@ export default function ValidarPage() {
                     <Button
                       size="sm"
                       variant="outline"
+                      className="border-zinc-700 hover:bg-red-950 hover:text-red-400"
                       onClick={() =>
                         handleValidate(coupon.couponCode, "reject")
                       }
@@ -275,22 +296,29 @@ export default function ValidarPage() {
 
           {/* Resgates */}
           {pendingRewards.map((coupon) => (
-            <Card key={coupon.id} className="border-l-4 border-l-purple-400">
+            <Card key={coupon.id} className="border-0 bg-zinc-900/80 border-l-4 border-l-violet-500">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <Gift className="h-5 w-5 text-muted-foreground" />
+                  <Image
+                    src="/images/pocaomarrom1.png"
+                    alt="Recompensa"
+                    width={24}
+                    height={24}
+                    className="[image-rendering:pixelated]"
+                  />
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{coupon.userName}</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="font-medium text-white truncate">{coupon.userName}</p>
+                    <p className="text-sm text-zinc-500">
                       {coupon.rewardTitle}
                     </p>
-                    <p className="text-xs font-mono text-muted-foreground mt-1">
+                    <p className="text-xs font-mono text-zinc-600 mt-1">
                       {formatCouponCode(coupon.couponCode)}
                     </p>
                   </div>
                   <div className="flex flex-col gap-1">
                     <Button
                       size="sm"
+                      className="bg-emerald-600 hover:bg-emerald-700"
                       onClick={() =>
                         handleValidate(coupon.couponCode, "approve")
                       }
@@ -305,6 +333,7 @@ export default function ValidarPage() {
                     <Button
                       size="sm"
                       variant="outline"
+                      className="border-zinc-700 hover:bg-red-950 hover:text-red-400"
                       onClick={() =>
                         handleValidate(coupon.couponCode, "reject")
                       }
@@ -322,8 +351,8 @@ export default function ValidarPage() {
 
       {totalPending === 0 && !searchResult && (
         <div className="text-center py-12">
-          <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">
+          <Clock className="h-12 w-12 text-zinc-700 mx-auto mb-4" />
+          <p className="text-zinc-500">
             Nenhum cupom pendente no momento
           </p>
         </div>

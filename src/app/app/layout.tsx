@@ -18,7 +18,7 @@ export default async function AppLayout({
   const xp = await getUserXp(session.user.id);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-zinc-950">
       <UserHeader userName={session.user.name} xp={xp} />
       <main className="mx-auto max-w-lg px-4 pb-24 pt-4">{children}</main>
       <BottomNav />

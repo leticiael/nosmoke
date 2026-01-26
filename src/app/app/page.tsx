@@ -1,24 +1,25 @@
 import { getUserDashboard, checkAndAwardMissions } from "@/actions/dashboard";
-import { StatCard } from "@/components/stat-card";
-import { AlertBanner } from "@/components/alert-banner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Cigarette, Gift, Clock } from "lucide-react";
+import { Cigarette, Gift, Clock, Target, Sparkles } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { formatNumber } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  // Verifica e premia missões pendentes
   await checkAndAwardMissions();
-
   const data = await getUserDashboard();
 
   if (!data) {
-    return <div>Erro ao carregar dados</div>;
+    return (
+      <div className="p-4 text-center text-muted-foreground">
+        Erro ao carregar dados
+      </div>
+    );
   }
 
   const {
@@ -37,100 +38,125 @@ export default async function DashboardPage() {
   const isOverLimit = todayTotal > dailyLimit;
 
   return (
-    <div className="space-y-6">
-      {/* Alertas */}
-      {alerts.overLimit && <AlertBanner type="over-limit" />}
-      {alerts.over30Percent && !alerts.overLimit && (
-        <AlertBanner
-          type="over-30-percent"
-          value={alerts.todayTotal}
-          average={alerts.average7Days}
-        />
-      )}
-
+    <div className="space-y-4 pb-4">
       {/* Card principal - Hoje */}
-      <Card className={isOverLimit ? "border-red-200" : ""}>
-        <CardHeader className="pb-2">
+      <Card
+        className={`border-0 bg-gradient-to-br ${isOverLimit ? "from-red-950/50 to-red-900/30" : "from-violet-950/50 to-purple-900/30"}`}
+      >
+        <CardContent className="p-4 space-y-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Hoje</CardTitle>
+            <h2 className="text-lg font-semibold text-white">Hoje</h2>
             {pendingRequests > 0 && (
-              <Badge variant="pending" className="gap-1">
+              <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 gap-1">
                 <Clock className="h-3 w-3" />
                 {pendingRequests} pendente{pendingRequests > 1 ? "s" : ""}
               </Badge>
             )}
           </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
+
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-4xl font-bold">
+              <p className="text-4xl font-bold text-white">
                 {formatNumber(todayTotal)}
-                <span className="text-lg text-muted-foreground font-normal">
+                <span className="text-xl text-white/60 font-normal">
                   {" "}
                   / {formatNumber(dailyLimit)}
                 </span>
               </p>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-white/60 mt-1">
                 {remaining > 0
                   ? `Restam ${formatNumber(remaining)} na meta`
-                  : "Meta atingida!"}
+                  : isOverLimit
+                    ? "Limite ultrapassado!"
+                    : "Meta atingida! 🎉"}
               </p>
             </div>
             <Link href="/app/pedir">
-              <Button size="lg" className="gap-2">
+              <Button
+                size="lg"
+                className="gap-2 bg-white/10 hover:bg-white/20 backdrop-blur border-0"
+              >
                 <Cigarette className="h-5 w-5" />
                 Pedir
               </Button>
             </Link>
           </div>
+
           <Progress
             value={progressPercent}
-            className="h-3"
-            indicatorClassName={isOverLimit ? "bg-red-500" : ""}
+            className="h-2 bg-white/10"
+            indicatorClassName={isOverLimit ? "bg-red-500" : "bg-violet-400"}
           />
         </CardContent>
       </Card>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-4">
-        <StatCard
-          title="XP atual"
-          value={xp}
-          icon="xp"
-          subtitle={nextReward ? `Próximo: ${nextReward.costXp} XP` : undefined}
-        />
-        <StatCard
-          title="Esta semana"
-          value={formatNumber(weekTotal)}
-          subtitle={`Média: ${formatNumber(average7Days)}/dia`}
-          icon="target"
-        />
+      <div className="grid grid-cols-2 gap-3">
+        <Card className="border-0 bg-zinc-900/80">
+          <CardContent className="p-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs text-zinc-500 uppercase tracking-wider">
+                  XP atual
+                </p>
+                <p className="text-2xl font-bold text-white mt-1">{xp}</p>
+                {nextReward && (
+                  <p className="text-xs text-zinc-500 mt-1">
+                    Próximo: {nextReward.costXp} XP
+                  </p>
+                )}
+              </div>
+              <div className="p-2 rounded-lg bg-violet-500/20">
+                <Sparkles className="h-5 w-5 text-violet-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 bg-zinc-900/80">
+          <CardContent className="p-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs text-zinc-500 uppercase tracking-wider">
+                  Esta semana
+                </p>
+                <p className="text-2xl font-bold text-white mt-1">
+                  {formatNumber(weekTotal)}
+                </p>
+                <p className="text-xs text-zinc-500 mt-1">
+                  Média: {formatNumber(average7Days)}/dia
+                </p>
+              </div>
+              <div className="p-2 rounded-lg bg-emerald-500/20">
+                <Target className="h-5 w-5 text-emerald-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Próxima recompensa */}
       {nextReward && (
-        <Card>
+        <Card className="border-0 bg-zinc-900/80">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="rounded-full bg-primary/10 p-2">
-                  <Gift className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Próxima recompensa
-                  </p>
-                  <p className="font-medium">{nextReward.title}</p>
-                </div>
+            <div className="flex items-center gap-4">
+              <div className="p-2 rounded-xl bg-amber-500/20">
+                <Gift className="h-6 w-6 text-amber-400" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs text-zinc-500 uppercase tracking-wider">
+                  Próxima recompensa
+                </p>
+                <p className="font-semibold text-white">{nextReward.title}</p>
               </div>
               <div className="text-right">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm font-medium text-white">
                   {xp} / {nextReward.costXp} XP
                 </p>
                 <Progress
                   value={(xp / nextReward.costXp) * 100}
-                  className="mt-1 h-2 w-24"
+                  className="mt-1 h-1.5 w-20 bg-zinc-800"
+                  indicatorClassName="bg-amber-400"
                 />
               </div>
             </div>
@@ -139,24 +165,71 @@ export default async function DashboardPage() {
       )}
 
       {/* Ações rápidas */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-3">
         <Link href="/app/missoes">
-          <Card className="cursor-pointer transition-colors hover:border-primary">
-            <CardContent className="p-4 text-center">
-              <p className="font-medium">🎯 Ver missões</p>
-              <p className="text-sm text-muted-foreground">Ganhe mais XP</p>
+          <Card className="border-0 bg-zinc-900/80 hover:bg-zinc-800/80 transition-colors cursor-pointer h-full">
+            <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+              <Image
+                src="/images/hearth.png"
+                alt="Missões"
+                width={40}
+                height={40}
+                className="[image-rendering:pixelated] mb-2"
+              />
+              <p className="font-medium text-white text-sm">Ver missões</p>
+              <p className="text-xs text-zinc-500">Ganhe mais XP</p>
             </CardContent>
           </Card>
         </Link>
         <Link href="/app/loja">
-          <Card className="cursor-pointer transition-colors hover:border-primary">
-            <CardContent className="p-4 text-center">
-              <p className="font-medium">🎁 Loja</p>
-              <p className="text-sm text-muted-foreground">Troque seu XP</p>
+          <Card className="border-0 bg-zinc-900/80 hover:bg-zinc-800/80 transition-colors cursor-pointer h-full">
+            <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+              <Image
+                src="/images/pocaomarrom1.png"
+                alt="Loja"
+                width={40}
+                height={40}
+                className="[image-rendering:pixelated] mb-2"
+              />
+              <p className="font-medium text-white text-sm">Loja</p>
+              <p className="text-xs text-zinc-500">Troque seu XP</p>
             </CardContent>
           </Card>
         </Link>
       </div>
+
+      {/* Alertas */}
+      {(alerts.overLimit || alerts.over30Percent) && (
+        <Card
+          className={`border-0 ${alerts.overLimit ? "bg-red-950/50" : "bg-amber-950/50"}`}
+        >
+          <CardContent className="p-4 flex items-center gap-3">
+            <div
+              className={`p-2 rounded-lg ${alerts.overLimit ? "bg-red-500/20" : "bg-amber-500/20"}`}
+            >
+              <Image
+                src="/images/cigarroaceso.png"
+                alt="Alerta"
+                width={24}
+                height={24}
+                className="[image-rendering:pixelated]"
+              />
+            </div>
+            <div>
+              <p
+                className={`font-medium ${alerts.overLimit ? "text-red-400" : "text-amber-400"}`}
+              >
+                {alerts.overLimit ? "Limite ultrapassado!" : "Atenção"}
+              </p>
+              <p className="text-sm text-zinc-400">
+                {alerts.overLimit
+                  ? "Você passou do limite diário hoje."
+                  : `Você está 30% acima da sua média (${formatNumber(alerts.todayTotal)} vs ${formatNumber(alerts.average7Days)})`}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

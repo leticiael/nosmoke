@@ -93,39 +93,61 @@ export default function LojaPage() {
   const pendingRedemptions = redemptions.filter((r) => r.status === "PENDING");
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Loja</h1>
-        <p className="text-muted-foreground">Troque seu XP por recompensas</p>
+    <div className="space-y-4 pb-4">
+      <div className="flex items-center gap-3">
+        <Image
+          src="/images/pocaomarrom1.png"
+          alt="Loja"
+          width={40}
+          height={40}
+          className="[image-rendering:pixelated]"
+        />
+        <div>
+          <h1 className="text-xl font-bold text-white">Loja</h1>
+          <p className="text-sm text-zinc-500">Troque seu XP por recompensas</p>
+        </div>
       </div>
 
       {/* XP atual */}
-      <Card className="bg-gradient-to-r from-primary/10 to-primary/5">
-        <CardContent className="flex items-center justify-between p-5">
+      <Card className="border border-zinc-800 bg-zinc-900">
+        <CardContent className="flex items-center justify-between p-4">
           <div>
-            <p className="text-sm text-muted-foreground">Seu saldo</p>
-            <p className="text-3xl font-bold text-primary">{userXp} XP</p>
+            <p className="text-xs text-zinc-500 uppercase tracking-wider">
+              Seu saldo
+            </p>
+            <p className="text-3xl font-bold text-white">{userXp} XP</p>
           </div>
-          <div className="rounded-full bg-primary/20 p-3">
-            <Sparkles className="h-6 w-6 text-primary" />
-          </div>
+          <Image
+            src="/images/pocaomarrom1.png"
+            alt="XP"
+            width={72}
+            height={72}
+            className="[image-rendering:pixelated]"
+          />
         </CardContent>
       </Card>
 
       {/* Resgates pendentes */}
       {pendingRedemptions.length > 0 && (
         <div className="space-y-3">
-          <h2 className="text-sm font-medium text-muted-foreground">
+          <h2 className="text-sm font-medium text-zinc-500">
             Aguardando validação
           </h2>
           {pendingRedemptions.map((r) => (
-            <Card key={r.id} className="border-amber-200 bg-amber-50">
+            <Card
+              key={r.id}
+              className="border border-amber-500/30 bg-amber-500/10"
+            >
               <CardContent className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-3">
-                  <Clock className="h-5 w-5 text-amber-600" />
-                  <span className="font-medium">{r.rewardTitle}</span>
+                  <Clock className="h-5 w-5 text-amber-500" />
+                  <span className="font-medium text-white">
+                    {r.rewardTitle}
+                  </span>
                 </div>
-                <Badge variant="warning">Pendente</Badge>
+                <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">
+                  Pendente
+                </Badge>
               </CardContent>
             </Card>
           ))}
@@ -134,7 +156,7 @@ export default function LojaPage() {
 
       {/* Lista de recompensas */}
       <div className="space-y-4">
-        <h2 className="text-sm font-medium text-muted-foreground">
+        <h2 className="text-sm font-medium text-zinc-500">
           Recompensas disponíveis
         </h2>
         {rewards.map((reward) => {
@@ -145,52 +167,64 @@ export default function LojaPage() {
             <Card
               key={reward.id}
               className={cn(
-                "transition-all",
-                reward.alreadyRedeemedToday && "opacity-60",
+                "transition-all border border-zinc-800 bg-zinc-900 hover:border-zinc-700",
+                reward.alreadyRedeemedToday && "opacity-50",
               )}
             >
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
+              <CardContent className="p-4">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-4">
                     {reward.imageUrl && (
-                      <Image
-                        src={reward.imageUrl}
-                        alt={reward.title}
-                        width={48}
-                        height={48}
-                        className="object-contain"
-                      />
+                      <div className="bg-zinc-800/50 p-2 rounded-xl">
+                        <Image
+                          src={reward.imageUrl}
+                          alt={reward.title}
+                          width={56}
+                          height={56}
+                          className="[image-rendering:pixelated] object-contain"
+                        />
+                      </div>
                     )}
-                    <div className="space-y-1">
-                      <h3 className="font-semibold">{reward.title}</h3>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="font-semibold text-sm leading-tight text-white">
+                          {reward.title}
+                        </h3>
+                        <div className="flex items-center gap-1 bg-primary/20 px-2.5 py-1 rounded-full shrink-0">
+                          <span className="text-primary font-bold text-sm">
+                            {reward.costXp} XP
+                          </span>
+                        </div>
+                      </div>
                       {reward.description && (
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs text-zinc-400 mt-1 line-clamp-2">
                           {reward.description}
                         </p>
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 shrink-0">
-                    <Sparkles className="h-4 w-4 text-primary" />
-                    <span className="font-bold text-primary">
-                      {reward.costXp}
-                    </span>
-                  </div>
                 </div>
 
-                <div className="mt-4">
+                <div className="mt-3">
                   {reward.alreadyRedeemedToday ? (
-                    <Button variant="secondary" disabled className="w-full">
-                      <Check className="mr-2 h-4 w-4" />
-                      Já resgatado hoje
+                    <Button
+                      variant="secondary"
+                      disabled
+                      className="w-full bg-zinc-800 text-zinc-500"
+                    >
+                      <Check className="mr-2 h-4 w-4" /> Já resgatado hoje
                     </Button>
                   ) : !hasEnoughXp ? (
-                    <Button variant="outline" disabled className="w-full">
+                    <Button
+                      variant="outline"
+                      disabled
+                      className="w-full border-zinc-700 bg-zinc-800/50 text-zinc-500"
+                    >
                       Faltam {reward.costXp - userXp} XP
                     </Button>
                   ) : (
                     <Button
-                      className="w-full"
+                      className="w-full bg-primary hover:bg-primary/90"
                       onClick={() => handleRedeem(reward.id)}
                       disabled={isPending}
                     >
@@ -214,25 +248,25 @@ export default function LojaPage() {
       {/* Histórico de resgates */}
       {redemptions.length > 0 && (
         <div className="space-y-3 pt-4">
-          <h2 className="text-sm font-medium text-muted-foreground">
+          <h2 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
             Últimos resgates
           </h2>
           {redemptions.slice(0, 5).map((r) => (
-            <Card key={r.id}>
+            <Card key={r.id} className="border-0 bg-zinc-900/80">
               <CardContent className="flex items-center justify-between p-4">
                 <div>
-                  <p className="font-medium">{r.rewardTitle}</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="font-medium text-white">{r.rewardTitle}</p>
+                  <p className="text-sm text-zinc-500">
                     {new Date(r.createdAt).toLocaleDateString("pt-BR")}
                   </p>
                 </div>
                 <Badge
-                  variant={
+                  className={
                     r.status === "VALIDATED"
-                      ? "success"
+                      ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
                       : r.status === "PENDING"
-                        ? "warning"
-                        : "destructive"
+                        ? "bg-amber-500/20 text-amber-400 border-amber-500/30"
+                        : "bg-red-500/20 text-red-400 border-red-500/30"
                   }
                 >
                   {r.status === "VALIDATED"

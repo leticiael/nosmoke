@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Cigarette, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -44,21 +45,27 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary/10 p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-zinc-950 p-4">
+      <Card className="w-full max-w-md border-zinc-800 bg-zinc-900/80">
         <CardHeader className="text-center space-y-4">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-            <Cigarette className="h-8 w-8 text-primary" />
+          <div className="mx-auto">
+            <Image
+              src="/images/guerreiro1.png"
+              alt="NoSmoke"
+              width={80}
+              height={80}
+              className="[image-rendering:pixelated]"
+            />
           </div>
-          <CardTitle className="text-2xl">NoSmoke</CardTitle>
-          <p className="text-muted-foreground">
-            Entre para acompanhar seu progresso
-          </p>
+          <CardTitle className="text-2xl text-white">NoSmoke</CardTitle>
+          <p className="text-zinc-500">Entre para acompanhar seu progresso</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-zinc-400">
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -67,10 +74,13 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
+                className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
+              <Label htmlFor="password" className="text-zinc-400">
+                Senha
+              </Label>
               <Input
                 id="password"
                 type="password"
@@ -79,16 +89,17 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
+                className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
               />
             </div>
 
             {error && (
-              <p className="text-sm text-destructive text-center">{error}</p>
+              <p className="text-sm text-red-400 text-center">{error}</p>
             )}
 
             <Button
               type="submit"
-              className="w-full"
+              className="w-full bg-violet-600 hover:bg-violet-700"
               size="lg"
               disabled={isLoading}
             >

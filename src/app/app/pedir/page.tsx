@@ -16,12 +16,12 @@ import {
   Loader2,
   AlertTriangle,
   Sparkles,
-  Cigarette,
   ArrowLeft,
   Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import Image from "next/image";
 
 type Reason = { id: string; text: string };
 
@@ -129,23 +129,32 @@ export default function PedirPage() {
   const amountLabel = amount === "0.5" ? "½ cigarro" : "1 cigarro";
 
   return (
-    <div className="min-h-[70vh] flex flex-col">
+    <div className="min-h-[70vh] flex flex-col pb-4">
       {/* Header com voltar */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-4">
         {step > 1 ? (
-          <Button variant="ghost" size="icon" onClick={handleBack}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleBack}
+            className="text-zinc-400 hover:text-white hover:bg-zinc-800"
+          >
             <ArrowLeft className="h-5 w-5" />
           </Button>
         ) : (
           <Link href="/app">
-            <Button variant="ghost" size="icon">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-zinc-400 hover:text-white hover:bg-zinc-800"
+            >
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
         )}
         <div>
-          <h1 className="text-xl font-bold">Pedir cigarro</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-xl font-bold text-white">Pedir cigarro</h1>
+          <p className="text-sm text-zinc-500">
             {step === 1 && "Quanto você quer?"}
             {step === 2 && "Por que você quer?"}
             {step === 3 && "Confirma o pedido?"}
@@ -154,13 +163,13 @@ export default function PedirPage() {
       </div>
 
       {/* Indicador de progresso */}
-      <div className="flex gap-2 mb-8">
+      <div className="flex gap-2 mb-6">
         {[1, 2, 3].map((s) => (
           <div
             key={s}
             className={cn(
               "h-1.5 flex-1 rounded-full transition-colors",
-              s <= step ? "bg-primary" : "bg-muted",
+              s <= step ? "bg-violet-500" : "bg-zinc-800",
             )}
           />
         ))}
@@ -171,22 +180,22 @@ export default function PedirPage() {
         <div className="flex-1 flex flex-col gap-4">
           {/* Info do dia */}
           {dashboardData && (
-            <Card className="bg-muted/50 border-0">
+            <Card className="border-0 bg-zinc-900/80">
               <CardContent className="p-4">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Hoje</span>
-                  <span className="font-medium">
+                  <span className="text-zinc-500">Hoje</span>
+                  <span className="font-medium text-white">
                     {dashboardData.todayTotal} / {dashboardData.todayLimit}{" "}
                     cigarros
                   </span>
                 </div>
                 {dashboardData.todayRemaining > 0 ? (
-                  <p className="text-xs text-green-600 mt-1">
+                  <p className="text-xs text-emerald-500 mt-1">
                     ✓ Ainda pode pedir {dashboardData.todayRemaining} dentro da
                     meta
                   </p>
                 ) : (
-                  <p className="text-xs text-amber-600 mt-1">
+                  <p className="text-xs text-amber-500 mt-1">
                     ⚠ Meta atingida - pedidos extras custam XP
                   </p>
                 )}
@@ -198,22 +207,32 @@ export default function PedirPage() {
           <div className="grid grid-cols-2 gap-4 flex-1">
             <button
               onClick={() => handleSelectAmount("0.5")}
-              className="flex flex-col items-center justify-center rounded-2xl border-2 border-muted bg-card p-8 hover:border-primary hover:bg-primary/5 transition-all active:scale-95"
+              className="flex flex-col items-center justify-center rounded-2xl border-2 border-zinc-800 bg-zinc-900/80 p-6 hover:border-violet-500 hover:bg-violet-950/30 transition-all active:scale-95"
             >
-              <Cigarette className="h-8 w-8 text-muted-foreground mb-3 rotate-45" />
-              <span className="text-4xl font-bold">½</span>
-              <span className="text-sm text-muted-foreground mt-1">
-                meio cigarro
-              </span>
+              <Image
+                src="/images/cigarroapagado,.png"
+                alt="Meio cigarro"
+                width={48}
+                height={48}
+                className="[image-rendering:pixelated] mb-3 opacity-80"
+              />
+              <span className="text-4xl font-bold text-white">½</span>
+              <span className="text-sm text-zinc-500 mt-1">meio cigarro</span>
             </button>
 
             <button
               onClick={() => handleSelectAmount("1.0")}
-              className="flex flex-col items-center justify-center rounded-2xl border-2 border-muted bg-card p-8 hover:border-primary hover:bg-primary/5 transition-all active:scale-95"
+              className="flex flex-col items-center justify-center rounded-2xl border-2 border-zinc-800 bg-zinc-900/80 p-6 hover:border-violet-500 hover:bg-violet-950/30 transition-all active:scale-95"
             >
-              <Cigarette className="h-8 w-8 text-muted-foreground mb-3" />
-              <span className="text-4xl font-bold">1</span>
-              <span className="text-sm text-muted-foreground mt-1">
+              <Image
+                src="/images/cigarroaceso.png"
+                alt="Um cigarro"
+                width={48}
+                height={48}
+                className="[image-rendering:pixelated] mb-3"
+              />
+              <span className="text-4xl font-bold text-white">1</span>
+              <span className="text-sm text-zinc-500 mt-1">
                 cigarro inteiro
               </span>
             </button>
@@ -226,15 +245,15 @@ export default function PedirPage() {
         <div className="flex-1 flex flex-col gap-3">
           {/* Aviso de extra */}
           {extraInfo?.isExtra && (
-            <Card className="border-amber-200 bg-amber-50 mb-2">
+            <Card className="border-0 bg-amber-950/50 mb-2">
               <CardContent className="p-3">
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-600" />
-                  <span className="text-sm text-amber-800">
+                  <AlertTriangle className="h-4 w-4 text-amber-500" />
+                  <span className="text-sm text-amber-400">
                     Pedido extra: <strong>−{extraInfo.xpCost} XP</strong>
                   </span>
                   {!extraInfo.canAfford && (
-                    <Badge variant="destructive" className="ml-auto text-xs">
+                    <Badge className="ml-auto text-xs bg-red-500/20 text-red-400 border-red-500/30">
                       XP insuficiente
                     </Badge>
                   )}
@@ -251,12 +270,12 @@ export default function PedirPage() {
                 onClick={() => handleSelectReason(r.text)}
                 disabled={extraInfo?.isExtra && !extraInfo.canAfford}
                 className={cn(
-                  "w-full text-left p-4 rounded-xl border-2 border-muted bg-card transition-all",
-                  "hover:border-primary hover:bg-primary/5 active:scale-[0.98]",
+                  "w-full text-left p-4 rounded-xl border-2 border-zinc-800 bg-zinc-900/80 transition-all",
+                  "hover:border-violet-500 hover:bg-violet-950/30 active:scale-[0.98]",
                   "disabled:opacity-50 disabled:cursor-not-allowed",
                 )}
               >
-                <span className="text-base">{r.text}</span>
+                <span className="text-base text-white">{r.text}</span>
               </button>
             ))}
           </div>
@@ -267,24 +286,26 @@ export default function PedirPage() {
       {step === 3 && (
         <div className="flex-1 flex flex-col">
           {/* Resumo */}
-          <Card className="mb-6">
+          <Card className="mb-6 border-0 bg-zinc-900/80">
             <CardContent className="p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Quantidade</span>
-                <span className="font-semibold text-lg">{amountLabel}</span>
+                <span className="text-zinc-500">Quantidade</span>
+                <span className="font-semibold text-lg text-white">
+                  {amountLabel}
+                </span>
               </div>
-              <div className="border-t pt-4">
-                <span className="text-muted-foreground text-sm">Motivo</span>
-                <p className="font-medium mt-1">{reason}</p>
+              <div className="border-t border-zinc-800 pt-4">
+                <span className="text-zinc-500 text-sm">Motivo</span>
+                <p className="font-medium mt-1 text-white">{reason}</p>
               </div>
 
               {extraInfo?.isExtra && (
-                <div className="border-t pt-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-amber-600">
+                <div className="border-t border-zinc-800 pt-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-amber-500">
                     <Sparkles className="h-4 w-4" />
                     <span className="text-sm">Custo extra</span>
                   </div>
-                  <span className="font-bold text-amber-600">
+                  <span className="font-bold text-amber-500">
                     −{extraInfo.xpCost} XP
                   </span>
                 </div>
@@ -296,7 +317,7 @@ export default function PedirPage() {
           <div className="mt-auto space-y-3">
             <Button
               size="lg"
-              className="w-full h-14 text-lg"
+              className="w-full h-14 text-lg bg-violet-600 hover:bg-violet-700"
               onClick={handleSubmit}
               disabled={isPending}
             >
@@ -313,7 +334,7 @@ export default function PedirPage() {
               )}
             </Button>
 
-            <p className="text-center text-xs text-muted-foreground">
+            <p className="text-center text-xs text-zinc-500">
               A Letícia vai receber uma notificação 💜
             </p>
           </div>
