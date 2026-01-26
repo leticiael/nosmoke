@@ -27,6 +27,7 @@ export default function LoginPage() {
         email,
         password,
         redirect: false,
+        callbackUrl: "/app",
       });
 
       if (result?.error) {
@@ -35,9 +36,13 @@ export default function LoginPage() {
         return;
       }
 
-      // Redireciona baseado no role (o middleware cuida disso)
-      router.push("/app");
-      router.refresh();
+      if (result?.ok) {
+        window.location.href = "/app";
+        return;
+      }
+
+      setError("Erro ao fazer login");
+      setIsLoading(false);
     } catch {
       setError("Erro ao fazer login. Tente novamente.");
       setIsLoading(false);
