@@ -2,9 +2,7 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   createCigRequest,
   getReasons,
@@ -12,14 +10,7 @@ import {
 } from "@/actions/cig-request";
 import { getUserDashboard } from "@/actions/dashboard";
 import { useToast } from "@/components/ui/use-toast";
-import {
-  Loader2,
-  AlertTriangle,
-  Sparkles,
-  ArrowLeft,
-  Check,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Loader2, ArrowLeft, Check, AlertTriangle, Flame } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -30,9 +21,7 @@ export default function PedirPage() {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
 
-  // Etapa do funil: 1 = quantidade, 2 = motivo, 3 = confirmar
   const [step, setStep] = useState(1);
-
   const [amount, setAmount] = useState<string>("");
   const [reason, setReason] = useState("");
   const [reasons, setReasons] = useState<Reason[]>([]);
@@ -48,7 +37,6 @@ export default function PedirPage() {
     todayRemaining: number;
   } | null>(null);
 
-  // Carrega motivos e dados
   useEffect(() => {
     getReasons().then(setReasons);
     getUserDashboard().then((data) => {
@@ -62,7 +50,6 @@ export default function PedirPage() {
     });
   }, []);
 
-  // Verifica se é extra quando muda a quantidade
   useEffect(() => {
     if (amount) {
       getExtraPreview(amount).then((info) => setExtraInfo(info));
@@ -111,15 +98,12 @@ export default function PedirPage() {
         return;
       }
 
-      // Redireciona para a página do cupom
       if (result.couponCode) {
         router.push(`/app/cupom/${result.couponCode}`);
       } else {
         toast({
-          title: "Pedido enviado! ✓",
-          description: result.isExtra
-            ? `Pedido extra. ${result.xpCost} XP descontados.`
-            : "Aguarde a Letícia aprovar 💜",
+          title: "Pedido enviado!",
+          description: "Aguarde a aprovação",
         });
         router.push("/app");
       }
@@ -127,248 +111,218 @@ export default function PedirPage() {
   };
 
   const amountLabel = amount === "0.5" ? "½ cigarro" : "1 cigarro";
+  const xpCost = extraInfo?.xpCost ?? (amount === "0.5" ? 15 : 30);
 
-  // Tela de loading enquanto envia o pedido
   if (isPending) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center gap-6">
-        <Image
-          src="/images/girl.png"
-          alt="Enviando pedido"
-          width={120}
-          height={120}
-          className="[image-rendering:pixelated] animate-pulse"
-        />
+        <div className="relative">
+          <Image
+            src="/images/guerreiro1.png"
+            alt="Enviando"
+            width={100}
+            height={100}
+            className="pixel-art pixel-glow animate-float"
+          />
+        </div>
         <div className="text-center">
-          <p className="text-lg font-medium text-white">Enviando pedido...</p>
-          <p className="text-sm text-zinc-500 mt-1">
-            A Letícia vai receber o pedido 💜
+          <p className="text-lg font-semibold text-white">Enviando pedido...</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            A Letícia vai receber 💜
           </p>
         </div>
-        <div className="flex gap-1">
-          <div
-            className="w-2 h-2 rounded-full bg-teal-500 animate-bounce"
-            style={{ animationDelay: "0ms" }}
-          />
-          <div
-            className="w-2 h-2 rounded-full bg-teal-500 animate-bounce"
-            style={{ animationDelay: "150ms" }}
-          />
-          <div
-            className="w-2 h-2 rounded-full bg-teal-500 animate-bounce"
-            style={{ animationDelay: "300ms" }}
-          />
+        <div className="flex gap-1.5">
+          <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }} />
+          <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }} />
+          <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-[70vh] flex flex-col pb-4 max-w-2xl mx-auto">
-      {/* Header com voltar */}
-      <div className="flex items-center gap-3 mb-4">
+    <div className="min-h-[70vh] flex flex-col pb-4">
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-6">
         {step > 1 ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleBack}
-            className="text-zinc-400 hover:text-white hover:bg-zinc-800"
-          >
+          <Button variant="ghost" size="icon" onClick={handleBack} className="rpg-border rounded-xl h-10 w-10">
             <ArrowLeft className="h-5 w-5" />
           </Button>
         ) : (
           <Link href="/app">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-zinc-400 hover:text-white hover:bg-zinc-800"
-            >
+            <Button variant="ghost" size="icon" className="rpg-border rounded-xl h-10 w-10">
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
         )}
-        <div>
-          <h1 className="text-xl font-bold text-white">Pedir cigarro</h1>
-          <p className="text-sm text-zinc-500">
-            {step === 1 && "Quanto você quer?"}
-            {step === 2 && "Por que você quer?"}
-            {step === 3 && "Confirma o pedido?"}
-          </p>
+        <div className="flex items-center gap-3">
+          <Image
+            src="/images/guerreiro1.png"
+            alt="Pedir"
+            width={44}
+            height={44}
+            className="pixel-art pixel-glow"
+          />
+          <div>
+            <h1 className="text-xl rpg-title">Solicitar</h1>
+            <p className="text-xs text-muted-foreground">
+              {step === 1 && "Escolha a quantidade"}
+              {step === 2 && "Qual o motivo?"}
+              {step === 3 && "Confirme seu pedido"}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Indicador de progresso */}
-      <div className="flex gap-2 mb-6">
+      {/* Progress Steps */}
+      <div className="flex gap-2 mb-8">
         {[1, 2, 3].map((s) => (
           <div
             key={s}
-            className={cn(
-              "h-1.5 flex-1 rounded-full transition-colors",
-              s <= step ? "bg-teal-500" : "bg-zinc-800",
-            )}
+            className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+              s <= step ? "bg-primary" : "bg-muted"
+            }`}
           />
         ))}
       </div>
 
-      {/* Etapa 1: Quantidade */}
+      {/* Step 1: Amount */}
       {step === 1 && (
-        <div className="flex-1 flex flex-col gap-4">
-          {/* Info do dia */}
+        <div className="flex-1 flex flex-col gap-6">
           {dashboardData && (
-            <Card className="border-0 bg-zinc-900/80">
-              <CardContent className="p-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-zinc-500">Hoje</span>
-                  <span className="font-medium text-white">
-                    {dashboardData.todayTotal} / {dashboardData.todayLimit}{" "}
-                    cigarros
-                  </span>
-                </div>
-                <p className="text-xs text-zinc-400 mt-1">
-                  Cada cigarro custa XP da sua mesada diária
-                </p>
-              </CardContent>
-            </Card>
+            <div className="rpg-card p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Flame className="w-5 h-5 text-amber-400" />
+                <span className="text-sm text-muted-foreground">Consumo de hoje</span>
+              </div>
+              <span className="stat-value text-white">
+                {dashboardData.todayTotal} / {dashboardData.todayLimit}
+              </span>
+            </div>
           )}
 
-          {/* Opções de quantidade */}
           <div className="grid grid-cols-2 gap-4 flex-1">
             <button
               onClick={() => handleSelectAmount("0.5")}
-              className="flex flex-col items-center justify-center rounded-2xl border-2 border-zinc-800 bg-zinc-900/80 p-6 hover:border-teal-500 hover:bg-teal-950/30 transition-all active:scale-95"
+              className="rpg-card p-6 flex flex-col items-center justify-center hover:rpg-card-glow transition-all active:scale-[0.98] group"
             >
               <Image
-                src="/images/cigarroapagado,.png"
+                src="/images/cigarroapagado.png"
                 alt="Meio cigarro"
-                width={48}
-                height={48}
-                className="[image-rendering:pixelated] mb-3 opacity-80"
+                width={64}
+                height={64}
+                className="pixel-art mb-4 opacity-70 group-hover:opacity-100 transition-opacity"
               />
-              <span className="text-4xl font-bold text-white">½</span>
-              <span className="text-sm text-zinc-500 mt-1">meio cigarro</span>
-              <span className="text-xs text-amber-400 mt-2 flex items-center gap-1">
-                <Image src="/images/hearth.png" alt="XP" width={12} height={12} className="[image-rendering:pixelated]" />
-                -15 XP
-              </span>
+              <span className="text-5xl font-bold text-white mb-1">½</span>
+              <span className="text-sm text-muted-foreground">meio cigarro</span>
+              <div className="flex items-center gap-1.5 mt-4 px-3 py-1.5 rounded-full bg-primary/20 border border-primary/30">
+                <Image src="/images/hearth.png" alt="XP" width={14} height={14} className="pixel-art" />
+                <span className="stat-value text-sm text-primary">-15</span>
+              </div>
             </button>
 
             <button
               onClick={() => handleSelectAmount("1.0")}
-              className="flex flex-col items-center justify-center rounded-2xl border-2 border-zinc-800 bg-zinc-900/80 p-6 hover:border-teal-500 hover:bg-teal-950/30 transition-all active:scale-95"
+              className="rpg-card p-6 flex flex-col items-center justify-center hover:rpg-card-glow transition-all active:scale-[0.98] group"
             >
               <Image
                 src="/images/cigarroaceso.png"
                 alt="Um cigarro"
-                width={48}
-                height={48}
-                className="[image-rendering:pixelated] mb-3"
+                width={64}
+                height={64}
+                className="pixel-art mb-4 pixel-glow group-hover:animate-float"
               />
-              <span className="text-4xl font-bold text-white">1</span>
-              <span className="text-sm text-zinc-500 mt-1">
-                cigarro inteiro
-              </span>
-              <span className="text-xs text-amber-400 mt-2 flex items-center gap-1">
-                <Image src="/images/hearth.png" alt="XP" width={12} height={12} className="[image-rendering:pixelated]" />
-                -30 XP
-              </span>
+              <span className="text-5xl font-bold text-white mb-1">1</span>
+              <span className="text-sm text-muted-foreground">cigarro inteiro</span>
+              <div className="flex items-center gap-1.5 mt-4 px-3 py-1.5 rounded-full bg-primary/20 border border-primary/30">
+                <Image src="/images/hearth.png" alt="XP" width={14} height={14} className="pixel-art" />
+                <span className="stat-value text-sm text-primary">-30</span>
+              </div>
             </button>
           </div>
 
-          {/* Info sobre XP */}
-          <Card className="border-0 bg-zinc-800/50 mt-2">
-            <CardContent className="p-3 space-y-1">
-              <p className="text-xs text-zinc-400 text-center">
-                <span className="text-teal-400">Dentro da meta:</span> 30 XP por cigarro
-              </p>
-              <p className="text-xs text-zinc-400 text-center">
-                <span className="text-red-400">Fora da meta:</span> 50 XP por cigarro
-              </p>
-              <p className="text-xs text-red-400/80 text-center mt-2">
-                Mais de 3.5 cigarros no dia = -20 XP de punição
-              </p>
-            </CardContent>
-          </Card>
+          <div className="rpg-card p-4 text-center space-y-1">
+            <p className="text-xs text-muted-foreground">
+              <span className="text-emerald-400 font-medium">Dentro da meta:</span> 30 XP/cigarro
+            </p>
+            <p className="text-xs text-muted-foreground">
+              <span className="text-red-400 font-medium">Fora da meta:</span> 50 XP/cigarro
+            </p>
+          </div>
         </div>
       )}
 
-      {/* Etapa 2: Motivo */}
+      {/* Step 2: Reason */}
       {step === 2 && (
-        <div className="flex-1 flex flex-col gap-3">
-          {/* Aviso de extra */}
+        <div className="flex-1 flex flex-col gap-4">
           {extraInfo?.isExtra && (
-            <Card className="border-0 bg-amber-950/50 mb-2">
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-500" />
-                  <span className="text-sm text-amber-400">
-                    Pedido extra: <strong>−{extraInfo.xpCost} XP</strong>
-                  </span>
-                  {!extraInfo.canAfford && (
-                    <Badge className="ml-auto text-xs bg-red-500/20 text-red-400 border-red-500/30">
-                      XP insuficiente
-                    </Badge>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <div className="rpg-card p-4 flex items-center gap-3 border-l-4 border-l-amber-500">
+              <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0" />
+              <div className="flex-1">
+                <span className="text-sm text-amber-200">
+                  Pedido extra: <strong className="stat-value">−{extraInfo.xpCost} XP</strong>
+                </span>
+              </div>
+              {!extraInfo.canAfford && (
+                <span className="rpg-badge-danger text-xs">XP insuficiente</span>
+              )}
+            </div>
           )}
 
-          {/* Lista de motivos */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             {reasons.map((r) => (
               <button
                 key={r.id}
                 onClick={() => handleSelectReason(r.text)}
                 disabled={extraInfo?.isExtra && !extraInfo.canAfford}
-                className={cn(
-                  "w-full text-left p-4 rounded-xl border-2 border-zinc-800 bg-zinc-900/80 transition-all",
-                  "hover:border-teal-500 hover:bg-teal-950/30 active:scale-[0.98]",
-                  "disabled:opacity-50 disabled:cursor-not-allowed",
-                )}
+                className="w-full text-left p-5 rpg-card transition-all hover:rpg-card-glow active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span className="text-base text-white">{r.text}</span>
+                <span className="text-white font-medium">{r.text}</span>
               </button>
             ))}
           </div>
         </div>
       )}
 
-      {/* Etapa 3: Confirmação */}
+      {/* Step 3: Confirmation */}
       {step === 3 && (
         <div className="flex-1 flex flex-col">
-          {/* Resumo */}
-          <Card className="mb-6 border-0 bg-zinc-900/80">
-            <CardContent className="p-6 space-y-4">
+          <div className="rpg-card rpg-card-glow p-6 mb-6">
+            <div className="flex items-center justify-center mb-6">
+              <Image
+                src="/images/cigarroaceso.png"
+                alt="Cigarro"
+                width={80}
+                height={80}
+                className="pixel-art pixel-glow animate-float"
+              />
+            </div>
+            
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-zinc-500">Quantidade</span>
-                <span className="font-semibold text-lg text-white">
-                  {amountLabel}
-                </span>
+                <span className="text-muted-foreground">Quantidade</span>
+                <span className="font-semibold text-lg text-white">{amountLabel}</span>
               </div>
-              <div className="border-t border-zinc-800 pt-4">
-                <span className="text-zinc-500 text-sm">Motivo</span>
-                <p className="font-medium mt-1 text-white">{reason}</p>
+              <div className="rpg-divider" />
+              <div>
+                <span className="text-muted-foreground text-sm">Motivo</span>
+                <p className="font-medium text-white mt-1">{reason}</p>
               </div>
-
-              {extraInfo?.isExtra && (
-                <div className="border-t border-zinc-800 pt-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-amber-500">
-                    <Sparkles className="h-4 w-4" />
-                    <span className="text-sm">Custo extra</span>
-                  </div>
-                  <span className="font-bold text-amber-500">
-                    −{extraInfo.xpCost} XP
-                  </span>
+              <div className="rpg-divider" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Image src="/images/hearth.png" alt="XP" width={20} height={20} className="pixel-art" />
+                  <span className="text-muted-foreground">Custo</span>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                <span className="stat-value text-xl text-primary">−{xpCost} XP</span>
+              </div>
+            </div>
+          </div>
 
-          {/* Botão de confirmar */}
-          <div className="mt-auto space-y-3">
+          <div className="mt-auto space-y-4">
             <Button
               size="lg"
-              className="w-full h-14 text-lg bg-teal-600 hover:bg-teal-700"
+              className="w-full h-14 text-lg rounded-xl rpg-button"
               onClick={handleSubmit}
               disabled={isPending}
             >
@@ -380,12 +334,12 @@ export default function PedirPage() {
               ) : (
                 <>
                   <Check className="mr-2 h-5 w-5" />
-                  Confirmar pedido
+                  Confirmar Pedido
                 </>
               )}
             </Button>
 
-            <p className="text-center text-xs text-zinc-500">
+            <p className="text-center text-sm text-muted-foreground">
               A Letícia vai receber uma notificação 💜
             </p>
           </div>

@@ -50,17 +50,29 @@ export async function getTotalsForDays(
 
 /**
  * Calcula a média dos últimos 7 dias (excluindo hoje)
+ * Considera apenas dias com dados para novos usuários
  */
 export async function getAverageLast7Days(): Promise<number> {
   const days = getLast7DaysExcludingToday();
   const totals = await getTotalsForDays(days);
 
   let sum = 0;
+  let daysWithData = 0;
+  
   totals.forEach((total) => {
     sum += total;
+    if (total > 0) {
+      daysWithData++;
+    }
   });
 
-  return sum / 7;
+  // Se não há dados, retorna 0 para evitar divisão por zero
+  if (daysWithData === 0) {
+    return 0;
+  }
+
+  // Usa o número real de dias com dados para calcular média
+  return sum / Math.max(daysWithData, 1);
 }
 
 /**
@@ -410,21 +422,34 @@ export async function getDailyAllowance(
  */
 export async function hasReceivedAllowanceToday(
   userId: string,
+  dateBr?: string,
 ): Promise<boolean> {
-  const today = todayBrasilia();
+  const today = dateBr || todayBrasilia();
   const existing = await prisma.xpLedger.findFirst({
     where: {
       userId,
       type: "daily_allowance",
-      note: { contains: today },
+      note: { endsWith: `meta: ${today.slice(-10)})` }, // Match mais preciso
     },
   });
+  // Fallback: busca por contains se o formato antigo existir
+  if (!existing) {
+    const legacyExisting = await prisma.xpLedger.findFirst({
+      where: {
+        userId,
+        type: "daily_allowance",
+        note: { contains: `(${today})` },
+      },
+    });
+    return !!legacyExisting;
+  }
   return !!existing;
 }
 
 /**
  * Dá a mesada diária ao usuário (se ainda não recebeu)
  * Retorna o valor dado ou 0 se já recebeu
+ * Usa transação para evitar race conditions
  */
 export async function grantDailyAllowance(userId: string): Promise<number> {
   const config = await getSystemConfig();
@@ -443,26 +468,44 @@ export async function grantDailyAllowance(userId: string): Promise<number> {
   }
 
   const today = todayBrasilia();
+  const { allowance, dailyLimit } = await getDailyAllowance(today);
+  const notePattern = `Mesada diária (${today}) - meta: ${dailyLimit}`;
 
-  // Verifica se já recebeu hoje
-  const alreadyReceived = await hasReceivedAllowanceToday(userId);
-  if (alreadyReceived) {
+  try {
+    // Usa transação para evitar race condition
+    const result = await prisma.$transaction(async (tx) => {
+      // Verifica se já recebeu hoje dentro da transação
+      const existing = await tx.xpLedger.findFirst({
+        where: {
+          userId,
+          type: "daily_allowance",
+          note: { contains: `(${today})` },
+        },
+      });
+
+      if (existing) {
+        return 0;
+      }
+
+      // Registra no ledger
+      await tx.xpLedger.create({
+        data: {
+          userId,
+          delta: allowance,
+          type: "daily_allowance",
+          note: notePattern,
+        },
+      });
+
+      return allowance;
+    });
+
+    return result;
+  } catch (error) {
+    // Se houver erro de constraint (duplicata), retorna 0
+    console.error("Erro ao conceder mesada:", error);
     return 0;
   }
-
-  // Calcula a mesada
-  const { allowance, dailyLimit } = await getDailyAllowance(today);
-
-  // Registra no ledger
-  await addXp(
-    userId,
-    allowance,
-    "daily_allowance",
-    undefined,
-    `Mesada diária (${today}) - meta: ${dailyLimit}`,
-  );
-
-  return allowance;
 }
 
 /**
@@ -562,6 +605,7 @@ export async function getDailyXpStats(userId: string): Promise<{
  * Verifica se o usuário deve receber punição por excesso de cigarros
  * Se fumar mais de 3.5 cigarros no dia, perde 20 XP extras
  * Retorna true se a punição foi aplicada
+ * Usa transação para evitar race conditions
  */
 export async function checkAndApplyExcessPenalty(
   userId: string,
@@ -577,27 +621,38 @@ export async function checkAndApplyExcessPenalty(
     return { applied: false, penalty: 0, totalCigs };
   }
 
-  // Verifica se já aplicou a punição hoje
-  const alreadyApplied = await prisma.xpLedger.findFirst({
-    where: {
-      userId,
-      type: "excess_penalty",
-      note: { contains: dateBr },
-    },
-  });
+  try {
+    // Usa transação para evitar race condition
+    const result = await prisma.$transaction(async (tx) => {
+      // Verifica se já aplicou a punição hoje dentro da transação
+      const alreadyApplied = await tx.xpLedger.findFirst({
+        where: {
+          userId,
+          type: "excess_penalty",
+          note: { contains: dateBr },
+        },
+      });
 
-  if (alreadyApplied) {
+      if (alreadyApplied) {
+        return { applied: false, penalty: 0 };
+      }
+
+      // Aplica a punição
+      await tx.xpLedger.create({
+        data: {
+          userId,
+          delta: -PENALTY_XP,
+          type: "excess_penalty",
+          note: `Punição por excesso: ${totalCigs} cigarros (${dateBr})`,
+        },
+      });
+
+      return { applied: true, penalty: PENALTY_XP };
+    });
+
+    return { ...result, totalCigs };
+  } catch (error) {
+    console.error("Erro ao aplicar punição:", error);
     return { applied: false, penalty: 0, totalCigs };
   }
-
-  // Aplica a punição
-  await addXp(
-    userId,
-    -PENALTY_XP,
-    "excess_penalty",
-    undefined,
-    `Punição por excesso: ${totalCigs} cigarros (${dateBr})`,
-  );
-
-  return { applied: true, penalty: PENALTY_XP, totalCigs };
 }

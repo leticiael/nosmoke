@@ -92,13 +92,40 @@ export async function validateCoupon(
       return { error: "Este cupom já foi processado" };
     }
 
-    await prisma.cigRequest.update({
-      where: { id: cigRequest.id },
-      data: {
-        status: action === "approve" ? "APPROVED" : "REJECTED",
-        approvedAt: action === "approve" ? new Date() : null,
-      },
-    });
+    if (action === "approve") {
+      await prisma.cigRequest.update({
+        where: { id: cigRequest.id },
+        data: {
+          status: "APPROVED",
+          approvedAt: new Date(),
+        },
+      });
+    } else {
+      // Devolve XP se foi cobrado (sistema legado ou novo)
+      const xpEntry = await prisma.xpLedger.findFirst({
+        where: {
+          refId: cigRequest.id,
+          type: { in: ["extra_penalty", "cig_purchase"] },
+        },
+      });
+
+      if (xpEntry) {
+        await prisma.xpLedger.create({
+          data: {
+            userId: cigRequest.userId,
+            delta: Math.abs(xpEntry.delta),
+            type: "cig_refund",
+            refId: cigRequest.id,
+            note: "Devolução por cupom rejeitado",
+          },
+        });
+      }
+
+      await prisma.cigRequest.update({
+        where: { id: cigRequest.id },
+        data: { status: "REJECTED" },
+      });
+    }
 
     revalidatePath("/admin");
     revalidatePath("/app");
@@ -109,6 +136,7 @@ export async function validateCoupon(
   // Tenta atualizar RewardRedemption
   const redemption = await prisma.rewardRedemption.findFirst({
     where: { couponCode: code },
+    include: { reward: true },
   });
 
   if (redemption) {
@@ -116,13 +144,31 @@ export async function validateCoupon(
       return { error: "Este cupom já foi processado" };
     }
 
-    await prisma.rewardRedemption.update({
-      where: { id: redemption.id },
-      data: {
-        status: action === "approve" ? "VALIDATED" : "REJECTED",
-        validatedAt: action === "approve" ? new Date() : null,
-      },
-    });
+    if (action === "approve") {
+      await prisma.rewardRedemption.update({
+        where: { id: redemption.id },
+        data: {
+          status: "VALIDATED",
+          validatedAt: new Date(),
+        },
+      });
+    } else {
+      // Devolve XP se foi cobrado
+      await prisma.xpLedger.create({
+        data: {
+          userId: redemption.userId,
+          delta: redemption.reward.costXp,
+          type: "reward_refund",
+          refId: redemption.id,
+          note: `Devolução: ${redemption.reward.title}`,
+        },
+      });
+
+      await prisma.rewardRedemption.update({
+        where: { id: redemption.id },
+        data: { status: "REJECTED" },
+      });
+    }
 
     revalidatePath("/admin");
     revalidatePath("/app");

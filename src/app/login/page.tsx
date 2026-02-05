@@ -2,16 +2,12 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -27,7 +23,6 @@ export default function LoginPage() {
         email,
         password,
         redirect: false,
-        callbackUrl: "/app",
       });
 
       if (result?.error) {
@@ -37,7 +32,7 @@ export default function LoginPage() {
       }
 
       if (result?.ok) {
-        window.location.href = "/app";
+        window.location.href = "/";
         return;
       }
 
@@ -50,76 +45,84 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-zinc-950 p-4">
-      <Card className="w-full max-w-md border-zinc-800 bg-zinc-900/80">
-        <CardHeader className="text-center space-y-4">
-          <div className="mx-auto">
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="w-full max-w-sm">
+        {/* Logo */}
+        <div className="text-center mb-10">
+          <div className="relative inline-block mb-6">
             <Image
               src="/images/guerreiro1.png"
               alt="NoSmoke"
-              width={80}
-              height={80}
-              className="[image-rendering:pixelated]"
+              width={120}
+              height={120}
+              className="pixel-art pixel-glow animate-float"
             />
           </div>
-          <CardTitle className="text-2xl text-white">NoSmoke</CardTitle>
-          <p className="text-zinc-500">Entre para acompanhar seu progresso</p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <h1 className="text-4xl rpg-title mb-2">NoSmoke</h1>
+          <p className="rpg-subtitle">Sistema de Controle</p>
+        </div>
+
+        {/* Login Card */}
+        <div className="rpg-card rpg-card-glow p-8">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-zinc-400">
-                Email
-              </Label>
+              <label className="rpg-subtitle">Email</label>
               <Input
-                id="email"
                 type="email"
                 placeholder="seu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                className="h-12 rounded-lg bg-secondary/50 border-primary/20 text-white placeholder:text-muted-foreground focus:border-primary"
               />
             </div>
+            
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-zinc-400">
-                Senha
-              </Label>
+              <label className="rpg-subtitle">Senha</label>
               <Input
-                id="password"
                 type="password"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
-                className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                className="h-12 rounded-lg bg-secondary/50 border-primary/20 text-white placeholder:text-muted-foreground focus:border-primary"
               />
             </div>
 
             {error && (
-              <p className="text-sm text-red-400 text-center">{error}</p>
+              <div className="p-3 rounded-lg rpg-badge-danger text-center text-sm">
+                {error}
+              </div>
             )}
 
             <Button
               type="submit"
-              className="w-full bg-teal-600 hover:bg-teal-700"
-              size="lg"
+              className="w-full h-12 rpg-button rounded-lg text-base"
               disabled={isLoading}
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                   Entrando...
                 </>
               ) : (
-                "Entrar"
+                "ENTRAR"
               )}
             </Button>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center mt-8">
+          <div className="flex items-center justify-center gap-3 opacity-40">
+            <Image src="/images/soldadodfoof.png" alt="" width={28} height={28} className="pixel-art" />
+            <Image src="/images/healer.png" alt="" width={28} height={28} className="pixel-art" />
+            <Image src="/images/guerreiro1.png" alt="" width={28} height={28} className="pixel-art" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

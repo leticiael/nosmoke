@@ -103,37 +103,50 @@ export async function redeemReward(formData: FormData) {
       return { error: "Você já resgatou esta recompensa hoje" };
     }
 
-    // Gera código de cupom único
-    let couponCode = generateCouponCode();
-    let attempts = 0;
-    while (attempts < 10) {
-      const existing = await prisma.rewardRedemption.findFirst({
-        where: { couponCode },
+    // Usa transação para evitar race conditions
+    const result = await prisma.$transaction(async (tx) => {
+      // Gera código de cupom único com retry
+      let couponCode = generateCouponCode();
+      let attempts = 0;
+      const maxAttempts = 20;
+      
+      while (attempts < maxAttempts) {
+        const existing = await tx.rewardRedemption.findFirst({
+          where: { couponCode },
+        });
+        if (!existing) break;
+        couponCode = generateCouponCode();
+        attempts++;
+      }
+      
+      if (attempts >= maxAttempts) {
+        throw new Error("Não foi possível gerar código único");
+      }
+
+      // Cria o resgate
+      const redemption = await tx.rewardRedemption.create({
+        data: {
+          userId: session.user.id,
+          rewardId,
+          dateBr: today,
+          status: "PENDING",
+          couponCode,
+        },
       });
-      if (!existing) break;
-      couponCode = generateCouponCode();
-      attempts++;
-    }
 
-    // Cria o resgate
-    const redemption = await prisma.rewardRedemption.create({
-      data: {
-        userId: session.user.id,
-        rewardId,
-        dateBr: today,
-        status: "PENDING",
-        couponCode,
-      },
+      // Desconta XP
+      await tx.xpLedger.create({
+        data: {
+          userId: session.user.id,
+          delta: -reward.costXp,
+          type: "reward_purchase",
+          refId: redemption.id,
+          note: `Resgate: ${reward.title}`,
+        },
+      });
+
+      return redemption;
     });
-
-    // Desconta XP
-    await addXp(
-      session.user.id,
-      -reward.costXp,
-      "reward_purchase",
-      redemption.id,
-      `Resgate: ${reward.title}`,
-    );
 
     revalidatePath("/app/loja");
     revalidatePath("/app");
@@ -142,7 +155,7 @@ export async function redeemReward(formData: FormData) {
     return {
       success: true,
       rewardTitle: reward.title,
-      couponCode: redemption.couponCode,
+      couponCode: result.couponCode,
     };
   } catch (error) {
     console.error("Erro ao resgatar recompensa:", error);

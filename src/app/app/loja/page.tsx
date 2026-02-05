@@ -2,19 +2,15 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Sparkles, Loader2, Check, Clock, X } from "lucide-react";
+import { Loader2, Check, Clock, ShoppingBag, Sparkles } from "lucide-react";
 import {
   getRewardsWithStatus,
   redeemReward,
   getUserRedemptions,
 } from "@/actions/rewards";
 import { useToast } from "@/components/ui/use-toast";
-import { formatDateTimeBR } from "@/lib/date-utils";
-import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 type RewardWithStatus = {
   id: string;
@@ -44,6 +40,7 @@ export default function LojaPage() {
   const [rewards, setRewards] = useState<RewardWithStatus[]>([]);
   const [userXp, setUserXp] = useState(0);
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const loadData = async () => {
     const [rewardsData, redemptionsData] = await Promise.all([
@@ -53,6 +50,7 @@ export default function LojaPage() {
     setRewards(rewardsData.rewards);
     setUserXp(rewardsData.userXp);
     setRedemptions(redemptionsData);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -76,13 +74,11 @@ export default function LojaPage() {
         });
         setPendingRewardId(null);
       } else if (result.couponCode) {
-        // Redireciona para a página do cupom
         router.push(`/app/cupom/${result.couponCode}`);
       } else {
         toast({
           title: "Resgate enviado! 🎉",
           description: `${result.rewardTitle} - aguarde validação`,
-          variant: "success",
         });
         await loadData();
         setPendingRewardId(null);
@@ -92,205 +88,169 @@ export default function LojaPage() {
 
   const pendingRedemptions = redemptions.filter((r) => r.status === "PENDING");
 
-  return (
-    <div className="space-y-4 pb-4">
-      {/* Header com Maga Vendedora */}
-      <div className="flex items-center gap-4">
+  if (loading) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-6">
         <Image
           src="/images/healer.png"
-          alt="Maga Vendedora"
-          width={64}
-          height={64}
-          className="[image-rendering:pixelated]"
+          alt="Carregando"
+          width={80}
+          height={80}
+          className="pixel-art pixel-glow animate-float"
         />
-        <div>
-          <h1 className="text-xl font-bold text-white">Loja</h1>
-          <p className="text-sm text-zinc-500">Troque seu XP por recompensas</p>
+        <p className="rpg-subtitle">Carregando loja...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 pb-6">
+      {/* Header com XP */}
+      <div className="rpg-card rpg-card-glow p-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-rose-500/10 to-transparent rounded-bl-full" />
+        
+        <div className="flex items-center gap-5 relative">
+          <div className="relative">
+            <Image
+              src="/images/healer.png"
+              alt="Loja"
+              width={80}
+              height={80}
+              className="pixel-art pixel-glow animate-float"
+            />
+            <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center">
+              <ShoppingBag className="w-4 h-4 text-rose-400" />
+            </div>
+          </div>
+          
+          <div className="flex-1">
+            <h1 className="text-2xl rpg-title mb-1">Loja</h1>
+            <p className="text-sm text-muted-foreground mb-3">
+              Troque seu XP por recompensas
+            </p>
+            
+            <div className="rpg-border rounded-xl p-3 inline-flex items-center gap-3">
+              <Image src="/images/hearth.png" alt="XP" width={28} height={28} className="pixel-art pixel-glow" />
+              <div>
+                <p className="stat-value text-2xl text-primary">{userXp}</p>
+                <p className="text-[10px] text-muted-foreground uppercase">XP Disponível</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Layout responsivo: sidebar no desktop */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Coluna lateral */}
-        <div className="lg:col-span-1 space-y-4">
-          {/* XP atual */}
-          <Card className="border border-zinc-800 bg-zinc-900">
-            <CardContent className="flex items-center justify-between p-4">
-              <div>
-                <p className="text-xs text-zinc-500 uppercase tracking-wider">
-                  Seu saldo
-                </p>
-                <p className="text-3xl font-bold text-white">{userXp} XP</p>
+      {/* Resgates Pendentes */}
+      {pendingRedemptions.length > 0 && (
+        <section>
+          <div className="flex items-center gap-2 mb-3">
+            <Clock className="w-4 h-4 text-amber-400" />
+            <span className="rpg-subtitle">Aguardando Validação</span>
+          </div>
+          <div className="space-y-2">
+            {pendingRedemptions.map((r) => (
+              <div key={r.id} className="rpg-card p-4 flex items-center gap-4 border-l-4 border-l-amber-500">
+                <Image src="/images/pocaomarrom1.png" alt="" width={32} height={32} className="pixel-art" />
+                <div className="flex-1">
+                  <p className="font-semibold text-white">{r.rewardTitle}</p>
+                  <p className="text-xs text-muted-foreground">{r.dateBr}</p>
+                </div>
+                <span className="rpg-badge">Pendente</span>
               </div>
-              <Image
-                src="/images/hearth.png"
-                alt="XP"
-                width={72}
-                height={72}
-                className="[image-rendering:pixelated]"
-              />
-            </CardContent>
-          </Card>
+            ))}
+          </div>
+        </section>
+      )}
 
-          {/* Resgates pendentes */}
-          {pendingRedemptions.length > 0 && (
-            <div className="space-y-3">
-              <h2 className="text-sm font-medium text-zinc-500">
-                Aguardando validação
-              </h2>
-              {pendingRedemptions.map((r) => (
-                <Card
-                  key={r.id}
-                  className="border border-amber-500/30 bg-amber-500/10"
-                >
-                  <CardContent className="flex items-center justify-between p-4">
-                    <div className="flex items-center gap-3">
-                      <Clock className="h-5 w-5 text-amber-500" />
-                      <span className="font-medium text-white">
-                        {r.rewardTitle}
-                      </span>
-                    </div>
-                    <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">
-                      Pendente
-                    </Badge>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+      {/* Recompensas */}
+      <section>
+        <div className="flex items-center gap-2 mb-4">
+          <Sparkles className="w-4 h-4 text-primary" />
+          <span className="rpg-subtitle">Recompensas Disponíveis</span>
         </div>
 
-        {/* Lista de recompensas */}
-        <div className="lg:col-span-2 space-y-4">
-          <h2 className="text-sm font-medium text-zinc-500">
-            Recompensas disponíveis
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {rewards.length === 0 ? (
+          <div className="rpg-card p-8 text-center">
+            <Image src="/images/pocaomarrom1.png" alt="" width={48} height={48} className="pixel-art mx-auto mb-3 opacity-30" />
+            <p className="text-muted-foreground">Nenhuma recompensa disponível</p>
+          </div>
+        ) : (
+          <div className="grid gap-4">
             {rewards.map((reward) => {
               const hasEnoughXp = userXp >= reward.costXp;
               const isCurrentPending = pendingRewardId === reward.id;
+              const canBuy = hasEnoughXp && !reward.alreadyRedeemedToday;
 
               return (
-                <Card
+                <div
                   key={reward.id}
-                  className={cn(
-                    "transition-all border border-zinc-800 bg-zinc-900 hover:border-zinc-700",
-                    reward.alreadyRedeemedToday && "opacity-50",
-                  )}
+                  className={`rpg-card p-5 transition-all ${
+                    reward.alreadyRedeemedToday ? "opacity-60" : canBuy ? "hover:rpg-card-glow" : ""
+                  }`}
                 >
-                  <CardContent className="p-4">
-                    <div className="flex flex-col gap-3">
-                      <div className="flex items-center gap-4">
-                        {reward.imageUrl && (
-                          <div className="bg-zinc-800/50 p-2 rounded-xl">
-                            <Image
-                              src={reward.imageUrl}
-                              alt={reward.title}
-                              width={56}
-                              height={56}
-                              className="[image-rendering:pixelated] object-contain"
-                            />
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <h3 className="font-semibold text-sm leading-tight text-white">
-                              {reward.title}
-                            </h3>
-                            <div className="flex items-center gap-1 bg-primary/20 px-2.5 py-1 rounded-full shrink-0">
-                              <span className="text-primary font-bold text-sm">
-                                {reward.costXp} XP
-                              </span>
-                            </div>
-                          </div>
-                          {reward.description && (
-                            <p className="text-xs text-zinc-400 mt-1 line-clamp-2">
-                              {reward.description}
-                            </p>
-                          )}
-                        </div>
-                      </div>
+                  <div className="flex items-start gap-4">
+                    {/* Imagem */}
+                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 flex items-center justify-center shrink-0">
+                      {reward.imageUrl ? (
+                        <Image src={reward.imageUrl} alt="" width={48} height={48} className="pixel-art" />
+                      ) : (
+                        <Image src="/images/pocaomarrom1.png" alt="" width={48} height={48} className="pixel-art" />
+                      )}
                     </div>
 
-                    <div className="mt-3">
+                    {/* Conteúdo */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <h3 className="font-semibold text-white">{reward.title}</h3>
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/20 border border-primary/30 shrink-0">
+                          <Image src="/images/hearth.png" alt="" width={14} height={14} className="pixel-art" />
+                          <span className="stat-value text-sm text-primary">{reward.costXp}</span>
+                        </div>
+                      </div>
+
+                      {reward.description && (
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                          {reward.description}
+                        </p>
+                      )}
+
+                      {/* Botão de ação */}
                       {reward.alreadyRedeemedToday ? (
-                        <Button
-                          variant="secondary"
-                          disabled
-                          className="w-full bg-zinc-800 text-zinc-500"
-                        >
-                          <Check className="mr-2 h-4 w-4" /> Já resgatado hoje
-                        </Button>
+                        <button className="w-full py-2.5 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-semibold text-sm flex items-center justify-center gap-2" disabled>
+                          <Check className="w-4 h-4" />
+                          Resgatado Hoje
+                        </button>
                       ) : !hasEnoughXp ? (
-                        <Button
-                          variant="outline"
-                          disabled
-                          className="w-full border-zinc-700 bg-zinc-800/50 text-zinc-500"
-                        >
+                        <button className="w-full py-2.5 rounded-lg bg-muted/50 border border-border text-muted-foreground font-semibold text-sm" disabled>
                           Faltam {reward.costXp - userXp} XP
-                        </Button>
+                        </button>
                       ) : (
-                        <Button
-                          className="w-full bg-primary hover:bg-primary/90"
+                        <button
+                          className="w-full rpg-button py-2.5 rounded-lg flex items-center justify-center gap-2"
                           onClick={() => handleRedeem(reward.id)}
                           disabled={isPending}
                         >
                           {isCurrentPending ? (
                             <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              <Loader2 className="w-4 h-4 animate-spin" />
                               Resgatando...
                             </>
                           ) : (
-                            "Resgatar"
+                            <>
+                              <ShoppingBag className="w-4 h-4" />
+                              Resgatar
+                            </>
                           )}
-                        </Button>
+                        </button>
                       )}
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               );
             })}
           </div>
-        </div>
-      </div>
-
-      {/* Histórico de resgates */}
-      {redemptions.length > 0 && (
-        <div className="space-y-3 pt-4">
-          <h2 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
-            Últimos resgates
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {redemptions.slice(0, 6).map((r) => (
-              <Card key={r.id} className="border-0 bg-zinc-900/80">
-                <CardContent className="flex items-center justify-between p-4">
-                  <div>
-                    <p className="font-medium text-white">{r.rewardTitle}</p>
-                    <p className="text-sm text-zinc-500">
-                      {new Date(r.createdAt).toLocaleDateString("pt-BR")}
-                    </p>
-                  </div>
-                  <Badge
-                    className={
-                      r.status === "VALIDATED"
-                        ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
-                        : r.status === "PENDING"
-                          ? "bg-amber-500/20 text-amber-400 border-amber-500/30"
-                          : "bg-red-500/20 text-red-400 border-red-500/30"
-                    }
-                  >
-                    {r.status === "VALIDATED"
-                      ? "Validado"
-                      : r.status === "PENDING"
-                        ? "Pendente"
-                        : "Rejeitado"}
-                  </Badge>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
+        )}
+      </section>
     </div>
   );
 }

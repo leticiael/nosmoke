@@ -52,41 +52,54 @@ export async function createCigRequest(formData: FormData) {
     const willBeNegative = userXp - xpCost < 0;
 
     try {
-      // Gera código de cupom único
-      let couponCode = generateCouponCode();
-      let attempts = 0;
-      while (attempts < 10) {
-        const existing = await prisma.cigRequest.findFirst({
-          where: { couponCode },
+      // Usa transação para evitar race conditions
+      const result = await prisma.$transaction(async (tx) => {
+        // Gera código de cupom único com retry
+        let couponCode = generateCouponCode();
+        let attempts = 0;
+        const maxAttempts = 20;
+        
+        while (attempts < maxAttempts) {
+          const existing = await tx.cigRequest.findFirst({
+            where: { couponCode },
+          });
+          if (!existing) break;
+          couponCode = generateCouponCode();
+          attempts++;
+        }
+        
+        if (attempts >= maxAttempts) {
+          throw new Error("Não foi possível gerar código único");
+        }
+
+        // Cria o pedido
+        const request = await tx.cigRequest.create({
+          data: {
+            userId: session.user.id,
+            amount: new Decimal(amountNum),
+            reason1,
+            reason2,
+            dateBr: today,
+            status: "PENDING",
+            couponCode,
+          },
         });
-        if (!existing) break;
-        couponCode = generateCouponCode();
-        attempts++;
-      }
 
-      // Cria o pedido
-      const request = await prisma.cigRequest.create({
-        data: {
-          userId: session.user.id,
-          amount: new Decimal(amountNum),
-          reason1,
-          reason2,
-          dateBr: today,
-          status: "PENDING",
-          couponCode,
-        },
+        // Cobra XP pelo cigarro
+        if (xpCost > 0) {
+          await tx.xpLedger.create({
+            data: {
+              userId: session.user.id,
+              delta: -xpCost,
+              type: "cig_purchase",
+              refId: request.id,
+              note: `Cigarro: ${amountNum} (${today})`,
+            },
+          });
+        }
+
+        return request;
       });
-
-      // Cobra XP pelo cigarro
-      if (xpCost > 0) {
-        await addXp(
-          session.user.id,
-          -xpCost,
-          "cig_purchase",
-          request.id,
-          `Cigarro: ${amountNum} (${today})`,
-        );
-      }
 
       revalidatePath("/app");
       revalidatePath("/app/pedir");
@@ -96,8 +109,8 @@ export async function createCigRequest(formData: FormData) {
         success: true,
         isExtra: false, // No novo sistema não tem "extra"
         xpCost,
-        couponCode: request.couponCode,
-        requestId: request.id,
+        couponCode: result.couponCode,
+        requestId: result.id,
         willBeNegative,
         newBalance: userXp - xpCost,
       };
@@ -119,41 +132,54 @@ export async function createCigRequest(formData: FormData) {
   }
 
   try {
-    // Gera código de cupom único
-    let couponCode = generateCouponCode();
-    let attempts = 0;
-    while (attempts < 10) {
-      const existing = await prisma.cigRequest.findFirst({
-        where: { couponCode },
+    // Usa transação para evitar race conditions
+    const result = await prisma.$transaction(async (tx) => {
+      // Gera código de cupom único com retry
+      let couponCode = generateCouponCode();
+      let attempts = 0;
+      const maxAttempts = 20;
+      
+      while (attempts < maxAttempts) {
+        const existing = await tx.cigRequest.findFirst({
+          where: { couponCode },
+        });
+        if (!existing) break;
+        couponCode = generateCouponCode();
+        attempts++;
+      }
+      
+      if (attempts >= maxAttempts) {
+        throw new Error("Não foi possível gerar código único");
+      }
+
+      // Cria o pedido
+      const request = await tx.cigRequest.create({
+        data: {
+          userId: session.user.id,
+          amount: new Decimal(amountNum),
+          reason1,
+          reason2,
+          dateBr: today,
+          status: "PENDING",
+          couponCode,
+        },
       });
-      if (!existing) break;
-      couponCode = generateCouponCode();
-      attempts++;
-    }
 
-    // Cria o pedido
-    const request = await prisma.cigRequest.create({
-      data: {
-        userId: session.user.id,
-        amount: new Decimal(amountNum),
-        reason1,
-        reason2,
-        dateBr: today,
-        status: "PENDING",
-        couponCode,
-      },
+      // Se é extra, desconta XP imediatamente (será devolvido se rejeitado)
+      if (extraInfo.isExtra && extraInfo.xpCost > 0) {
+        await tx.xpLedger.create({
+          data: {
+            userId: session.user.id,
+            delta: -extraInfo.xpCost,
+            type: "extra_penalty",
+            refId: request.id,
+            note: `Pedido extra: ${amountNum} cigarro(s)`,
+          },
+        });
+      }
+
+      return request;
     });
-
-    // Se é extra, desconta XP imediatamente (será devolvido se rejeitado)
-    if (extraInfo.isExtra && extraInfo.xpCost > 0) {
-      await addXp(
-        session.user.id,
-        -extraInfo.xpCost,
-        "extra_penalty",
-        request.id,
-        `Pedido extra: ${amountNum} cigarro(s)`,
-      );
-    }
 
     revalidatePath("/app");
     revalidatePath("/app/pedir");
@@ -163,8 +189,8 @@ export async function createCigRequest(formData: FormData) {
       success: true,
       isExtra: extraInfo.isExtra,
       xpCost: extraInfo.xpCost,
-      couponCode: request.couponCode,
-      requestId: request.id,
+      couponCode: result.couponCode,
+      requestId: result.id,
     };
   } catch (error) {
     console.error("Erro ao criar pedido:", error);
@@ -246,5 +272,87 @@ export async function getExtraPreview(amount: string): Promise<{
     userXp: updatedXp,
     canAfford: updatedXp >= extraInfo.xpCost,
     newSystem: false,
+  };
+}
+
+export async function getCigRequestHistory(page: number = 1, limit: number = 15) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { items: [], hasMore: false };
+  }
+
+  const skip = (page - 1) * limit;
+
+  const requests = await prisma.cigRequest.findMany({
+    where: { userId: session.user.id },
+    orderBy: { createdAt: "desc" },
+    skip,
+    take: limit + 1,
+  });
+
+  const hasMore = requests.length > limit;
+  const items = requests.slice(0, limit).map((r) => ({
+    id: r.id,
+    amount: r.amount.toString(),
+    reason: r.reason1,
+    status: r.status,
+    createdAt: r.createdAt.toISOString(),
+    dateBr: r.dateBr,
+  }));
+
+  return { items, hasMore };
+}
+
+export async function getCigRequestStats() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { today: 0, week: 0, month: 0 };
+  }
+
+  const today = todayBrasilia();
+  const now = new Date();
+  
+  // Início da semana (domingo)
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay());
+  weekStart.setHours(0, 0, 0, 0);
+  
+  // Início do mês
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const [todayResult, weekResult, monthResult] = await Promise.all([
+    prisma.cigRequest.aggregate({
+      where: {
+        userId: session.user.id,
+        dateBr: today,
+        status: "APPROVED",
+      },
+      _sum: { amount: true },
+    }),
+    prisma.cigRequest.aggregate({
+      where: {
+        userId: session.user.id,
+        status: "APPROVED",
+        createdAt: { gte: weekStart },
+      },
+      _sum: { amount: true },
+    }),
+    prisma.cigRequest.aggregate({
+      where: {
+        userId: session.user.id,
+        status: "APPROVED",
+        createdAt: { gte: monthStart },
+      },
+      _sum: { amount: true },
+    }),
+  ]);
+
+  const toNum = (val: Decimal | null) => 
+    val ? (typeof val === "number" ? val : Number(val)) : 0;
+
+  return {
+    today: toNum(todayResult._sum.amount),
+    week: toNum(weekResult._sum.amount),
+    month: toNum(monthResult._sum.amount),
   };
 }

@@ -6,24 +6,22 @@ import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
-  ClipboardCheck,
-  Gift,
   Settings,
   LogOut,
   Menu,
   X,
   QrCode,
+  History,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import Image from "next/image";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/validar", label: "Validar", icon: QrCode },
-  { href: "/admin/pedidos", label: "Pedidos", icon: ClipboardCheck },
-  { href: "/admin/recompensas", label: "Recompensas", icon: Gift },
-  { href: "/admin/config", label: "Config", icon: Settings },
+  { href: "/admin/historico", label: "Histórico", icon: History },
+  { href: "/admin/config", label: "Configurações", icon: Settings },
 ];
 
 export function AdminNav({ userName }: { userName: string }) {
@@ -32,23 +30,19 @@ export function AdminNav({ userName }: { userName: string }) {
 
   return (
     <>
-      {/* Header fixo no mobile */}
-      <header className="sticky top-0 z-50 border-b border-zinc-800 bg-zinc-950/95 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/80 md:hidden">
-        <div className="flex h-14 items-center justify-between px-4">
-          <Link href="/admin" className="flex items-center gap-2">
-            <Image
-              src="/images/girl.png"
-              alt="Admin"
-              width={28}
-              height={28}
-              className="[image-rendering:pixelated]"
-            />
-            <span className="font-bold text-lg text-teal-400">Admin</span>
+      {/* Mobile Header */}
+      <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-lg border-b border-border shadow-soft md:hidden">
+        <div className="flex h-16 items-center justify-between px-4">
+          <Link href="/admin" className="flex items-center gap-3">
+            <div className="p-2 rounded-xl gradient-primary">
+              <Shield className="h-5 w-5 text-white" />
+            </div>
+            <span className="font-bold text-lg text-foreground">Admin</span>
           </Link>
           <Button
             variant="ghost"
             size="icon"
-            className="text-zinc-400 hover:text-white hover:bg-zinc-800"
+            className="rounded-xl"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? (
@@ -59,9 +53,9 @@ export function AdminNav({ userName }: { userName: string }) {
           </Button>
         </div>
 
-        {/* Menu dropdown mobile */}
+        {/* Mobile Menu Dropdown */}
         {mobileMenuOpen && (
-          <nav className="border-t border-zinc-800 bg-zinc-950 p-4 space-y-2">
+          <nav className="border-t border-border bg-card p-4 space-y-2">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -71,10 +65,10 @@ export function AdminNav({ userName }: { userName: string }) {
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 transition-colors",
+                    "flex items-center gap-3 rounded-xl px-4 py-3 transition-all",
                     isActive
-                      ? "bg-teal-600 text-white"
-                      : "text-zinc-400 hover:bg-zinc-800 hover:text-white",
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
                   <Icon className="h-5 w-5" />
@@ -84,7 +78,7 @@ export function AdminNav({ userName }: { userName: string }) {
             })}
             <Button
               variant="ghost"
-              className="w-full justify-start gap-3 text-zinc-400 hover:text-white hover:bg-zinc-800"
+              className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl px-4 py-3"
               onClick={() => signOut({ callbackUrl: "/login" })}
             >
               <LogOut className="h-5 w-5" />
@@ -94,10 +88,10 @@ export function AdminNav({ userName }: { userName: string }) {
         )}
       </header>
 
-      {/* Bottom nav mobile */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-zinc-800 bg-zinc-950/95 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/80 md:hidden">
-        <div className="flex justify-around py-2">
-          {navItems.slice(0, 4).map((item) => {
+      {/* Mobile Bottom Nav */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-t border-border shadow-soft md:hidden">
+        <div className="flex justify-around py-2 pb-safe">
+          {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
             return (
@@ -105,39 +99,40 @@ export function AdminNav({ userName }: { userName: string }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex flex-col items-center gap-1 px-3 py-1 rounded-lg transition-colors",
-                  isActive ? "text-teal-400" : "text-zinc-500",
+                  "flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all",
+                  isActive ? "text-primary" : "text-muted-foreground",
                 )}
               >
-                <Icon className="h-5 w-5" />
-                <span className="text-xs">{item.label}</span>
+                <div className={cn(
+                  "p-1.5 rounded-xl",
+                  isActive && "bg-primary/10"
+                )}>
+                  <Icon className="h-5 w-5" />
+                </div>
+                <span className="text-[10px] font-medium">{item.label}</span>
               </Link>
             );
           })}
         </div>
       </nav>
 
-      {/* Sidebar desktop */}
-      <aside className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col border-r border-zinc-800 bg-zinc-900">
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col border-r border-border bg-card">
         <div className="flex flex-col flex-1">
           {/* Logo */}
-          <div className="flex h-16 items-center border-b border-zinc-800 px-6">
-            <Link href="/admin" className="flex items-center gap-2">
-              <Image
-                src="/images/girl.png"
-                alt="Admin"
-                width={32}
-                height={32}
-                className="[image-rendering:pixelated]"
-              />
-              <span className="text-xl font-bold text-white">NoSmoke</span>
-              <span className="text-xs bg-teal-500/20 text-teal-400 px-2 py-0.5 rounded">
+          <div className="flex h-16 items-center border-b border-border px-6">
+            <Link href="/admin" className="flex items-center gap-3">
+              <div className="p-2 rounded-xl gradient-primary">
+                <Shield className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-lg font-bold text-foreground">NoSmoke</span>
+              <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
                 Admin
               </span>
             </Link>
           </div>
 
-          {/* Nav items */}
+          {/* Nav Items */}
           <nav className="flex-1 space-y-1 px-3 py-4">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -147,10 +142,10 @@ export function AdminNav({ userName }: { userName: string }) {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 transition-colors",
+                    "flex items-center gap-3 rounded-xl px-4 py-3 transition-all font-medium",
                     isActive
-                      ? "bg-teal-600 text-white"
-                      : "text-zinc-400 hover:bg-zinc-800 hover:text-white",
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
                   <Icon className="h-5 w-5" />
@@ -160,24 +155,24 @@ export function AdminNav({ userName }: { userName: string }) {
             })}
           </nav>
 
-          {/* User info */}
-          <div className="border-t border-zinc-800 p-4">
+          {/* User Info */}
+          <div className="border-t border-border p-4">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full bg-teal-500/20 flex items-center justify-center">
-                <span className="text-sm font-medium text-teal-400">
+              <div className="h-10 w-10 rounded-full gradient-primary flex items-center justify-center">
+                <span className="text-sm font-semibold text-white">
                   {userName.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">
+                <p className="text-sm font-medium text-foreground truncate">
                   {userName}
                 </p>
-                <p className="text-xs text-zinc-500">Admin</p>
+                <p className="text-xs text-muted-foreground">Administrador</p>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-zinc-500 hover:text-white hover:bg-zinc-800"
+                className="rounded-xl text-muted-foreground hover:text-foreground"
                 onClick={() => signOut({ callbackUrl: "/login" })}
               >
                 <LogOut className="h-4 w-4" />
@@ -187,7 +182,7 @@ export function AdminNav({ userName }: { userName: string }) {
         </div>
       </aside>
 
-      {/* Spacer for desktop sidebar */}
+      {/* Desktop Sidebar Spacer */}
       <div className="hidden md:block md:w-64" />
     </>
   );

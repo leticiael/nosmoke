@@ -105,11 +105,11 @@ export async function approveOrRejectRequest(formData: FormData) {
         );
       }
     } else {
-      // Se rejeitado, devolve XP se foi cobrado (pedido extra)
+      // Se rejeitado, devolve XP se foi cobrado (sistema legado ou novo)
       const xpEntry = await prisma.xpLedger.findFirst({
         where: {
           refId: requestId,
-          type: "extra_penalty",
+          type: { in: ["extra_penalty", "cig_purchase"] },
         },
       });
 
@@ -117,7 +117,7 @@ export async function approveOrRejectRequest(formData: FormData) {
         await addXp(
           request.userId,
           Math.abs(xpEntry.delta), // Devolve o valor
-          "extra_refund",
+          "cig_refund",
           requestId,
           "Devolução por pedido rejeitado",
         );
@@ -299,6 +299,8 @@ export async function updateSystemConfig(formData: FormData) {
     defaultDailyLimit: formData.get("defaultDailyLimit"),
     extraCost05: formData.get("extraCost05"),
     extraCost10: formData.get("extraCost10"),
+    dailyXpEnabled: formData.get("dailyXpEnabled") === "true",
+    xpPerCig: formData.get("xpPerCig"),
   };
 
   const validation = updateConfigSchema.safeParse(rawData);
@@ -327,6 +329,12 @@ export async function updateSystemConfig(formData: FormData) {
           ...(data.extraCost10 !== undefined && {
             extraCost10: data.extraCost10,
           }),
+          ...(data.dailyXpEnabled !== undefined && {
+            dailyXpEnabled: data.dailyXpEnabled,
+          }),
+          ...(data.xpPerCig !== undefined && {
+            xpPerCig: data.xpPerCig,
+          }),
         },
       });
     }
@@ -351,6 +359,8 @@ export async function getSystemConfigAdmin() {
         defaultDailyLimit: config.defaultDailyLimit.toNumber(),
         extraCost05: config.extraCost05,
         extraCost10: config.extraCost10,
+        dailyXpEnabled: config.dailyXpEnabled,
+        xpPerCig: config.xpPerCig,
       }
     : null;
 }
@@ -400,4 +410,110 @@ export async function getAdminDashboardStats() {
     todayApproved,
     todayRejected,
   };
+}
+
+// Buscar todos os usuários (para select)
+export async function getAllUsersAdmin() {
+  await requireAdmin();
+
+  const users = await prisma.user.findMany({
+    where: { role: "USER" },
+    select: { id: true, name: true, email: true },
+    orderBy: { name: "asc" },
+  });
+
+  return users;
+}
+
+// Buscar XP atual de um usuário
+export async function getUserXpAdmin(userId: string) {
+  await requireAdmin();
+
+  const result = await prisma.xpLedger.aggregate({
+    where: { userId },
+    _sum: { delta: true },
+  });
+
+  return result._sum.delta ?? 0;
+}
+
+// Adicionar cigarro manualmente (para dias passados)
+export async function addManualCigRecord(formData: FormData) {
+  await requireAdmin();
+
+  const userId = formData.get("userId") as string;
+  const date = formData.get("date") as string;
+  const amountStr = formData.get("amount") as string;
+  const xpCostStr = formData.get("xpCost") as string;
+  const note = formData.get("note") as string | null;
+
+  // Validações básicas
+  if (!userId || !date || !amountStr || !xpCostStr) {
+    return { error: "Preencha todos os campos obrigatórios" };
+  }
+
+  const amount = parseFloat(amountStr);
+  const xpCost = parseInt(xpCostStr, 10);
+
+  if (isNaN(amount) || (amount !== 0.5 && amount !== 1)) {
+    return { error: "Quantidade deve ser 0.5 ou 1" };
+  }
+
+  if (isNaN(xpCost) || xpCost < 0) {
+    return { error: "XP deve ser um número válido" };
+  }
+
+  // Verifica se a data é válida (formato YYYY-MM-DD)
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRegex.test(date)) {
+    return { error: "Data inválida" };
+  }
+
+  // Verifica se usuário existe
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    return { error: "Usuário não encontrado" };
+  }
+
+  try {
+    // Gera código de cupom único
+    const couponCode = `MANUAL-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+    await prisma.$transaction(async (tx) => {
+      // Cria o registro do cigarro já aprovado
+      await tx.cigRequest.create({
+        data: {
+          userId,
+          amount: new Decimal(amount),
+          reason1: note || "Adicionado manualmente pela admin",
+          reason2: note || "Adicionado manualmente pela admin",
+          status: "APPROVED",
+          approvedAt: new Date(),
+          dateBr: date,
+          couponCode,
+        },
+      });
+
+      // Desconta XP se houver custo
+      if (xpCost > 0) {
+        await tx.xpLedger.create({
+          data: {
+            userId,
+            delta: -xpCost,
+            type: "manual_cig",
+            note: `Cigarro manual (${date}): ${note || "sem observação"}`,
+          },
+        });
+      }
+    });
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/adicionar");
+    revalidatePath("/app");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao adicionar cigarro manual:", error);
+    return { error: "Erro ao adicionar registro" };
+  }
 }

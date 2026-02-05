@@ -1,8 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { BottomNav } from "@/components/bottom-nav";
-import { UserHeader } from "@/components/user-header";
-import { getUserXp } from "@/lib/calculations";
 
 export default async function AppLayout({
   children,
@@ -15,12 +13,10 @@ export default async function AppLayout({
     redirect("/login");
   }
 
-  const xp = await getUserXp(session.user.id);
-
   return (
-    <div className="min-h-screen bg-zinc-950">
-      <UserHeader userName={session.user.name} xp={xp} />
-      <main className="mx-auto max-w-lg md:max-w-4xl lg:max-w-6xl px-4 md:px-8 pb-24 md:pb-8 pt-6 md:pt-10">
+    <div className="min-h-screen gradient-bg">
+      {/* Desktop: add top padding for fixed nav */}
+      <main className="mx-auto max-w-lg md:max-w-2xl lg:max-w-3xl px-4 md:px-6 pb-28 md:pb-8 pt-4 md:pt-24">
         {children}
       </main>
       <BottomNav />

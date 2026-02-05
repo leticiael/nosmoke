@@ -1,19 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { Card, CardContent } from "@/components/ui/card";
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getCouponDetails } from "@/actions/coupon";
 import { formatCouponCode } from "@/lib/coupon";
-import {
-  CheckCircle2,
-  XCircle,
-  Clock,
-  ArrowLeft,
-  Sparkles,
-} from "lucide-react";
+import { CheckCircle2, XCircle, Clock, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -31,7 +24,6 @@ type CouponData = {
 
 export default function CupomPage() {
   const params = useParams();
-  const router = useRouter();
   const [coupon, setCoupon] = useState<CouponData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,42 +48,46 @@ export default function CupomPage() {
 
     loadCoupon();
 
-    // Poll para atualização em tempo real
-    const interval = setInterval(loadCoupon, 3000);
-    return () => clearInterval(interval);
-  }, [code]);
+    // Progressive polling
+    let pollCount = 0;
+    const getInterval = () => Math.min(5000 + pollCount * 5000, 30000);
+    
+    let timeoutId: NodeJS.Timeout;
+    const poll = () => {
+      timeoutId = setTimeout(async () => {
+        await loadCoupon();
+        pollCount++;
+        if (!error) {
+          poll();
+        }
+      }, getInterval());
+    };
+    poll();
+    
+    return () => clearTimeout(timeoutId);
+  }, [code, error]);
 
   if (loading) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center gap-6">
         <div className="relative">
           <Image
-            src="/images/girl.png"
+            src="/images/soldadodfoof.png"
             alt="Carregando"
             width={80}
             height={80}
-            className="[image-rendering:pixelated] animate-bounce"
+            className="pixel-art animate-float"
           />
+          <div className="absolute inset-0 blur-2xl bg-primary/30 -z-10" />
         </div>
         <div className="text-center">
-          <p className="text-lg font-medium text-white">
-            Buscando seu cupom...
-          </p>
-          <p className="text-sm text-zinc-500 mt-1">Um momento</p>
+          <p className="text-lg font-semibold text-white">Carregando cupom...</p>
+          <p className="text-sm text-muted-foreground mt-1">Aguarde um momento</p>
         </div>
         <div className="flex gap-1.5">
-          <div
-            className="w-2 h-2 rounded-full bg-teal-500 animate-bounce"
-            style={{ animationDelay: "0ms" }}
-          />
-          <div
-            className="w-2 h-2 rounded-full bg-teal-400 animate-bounce"
-            style={{ animationDelay: "150ms" }}
-          />
-          <div
-            className="w-2 h-2 rounded-full bg-teal-300 animate-bounce"
-            style={{ animationDelay: "300ms" }}
-          />
+          <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }} />
+          <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }} />
+          <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
         </div>
       </div>
     );
@@ -99,16 +95,18 @@ export default function CupomPage() {
 
   if (error || !coupon) {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-4">
-        <XCircle className="h-16 w-16 text-red-500" />
-        <p className="text-lg text-zinc-400">
-          {error || "Cupom não encontrado"}
-        </p>
+      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-6">
+        <div className="glass-card rounded-full p-6">
+          <XCircle className="h-12 w-12 text-red-400" />
+        </div>
+        <div className="text-center">
+          <p className="text-lg font-semibold text-white">
+            {error || "Cupom não encontrado"}
+          </p>
+        </div>
         <Link href="/app">
-          <Button
-            variant="outline"
-            className="border-zinc-700 hover:bg-zinc-800"
-          >
+          <Button variant="outline" className="glass border-0 rounded-xl">
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Voltar
           </Button>
         </Link>
@@ -117,263 +115,180 @@ export default function CupomPage() {
   }
 
   const isPending = coupon.status === "PENDING";
-  const isApproved =
-    coupon.status === "APPROVED" || coupon.status === "VALIDATED";
+  const isApproved = coupon.status === "APPROVED" || coupon.status === "VALIDATED";
   const isRejected = coupon.status === "REJECTED";
 
   return (
-    <div className="min-h-[70vh] flex flex-col pb-4">
+    <div className="min-h-[70vh] flex flex-col pb-6">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-4 mb-6">
         <Link href="/app">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-zinc-400 hover:text-white hover:bg-zinc-800"
-          >
+          <Button variant="ghost" size="icon" className="glass rounded-xl">
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
-        <div>
-          <h1 className="text-xl font-bold text-white">
-            {coupon.type === "cigarette" ? "Vale Cigarro" : "Vale Resgate"}
-          </h1>
-          <p className="text-sm text-zinc-500">
-            {isPending && "Aguardando validação"}
-            {isApproved && "Validado com sucesso!"}
-            {isRejected && "Não aprovado"}
+        <div className="flex items-center gap-3">
+          <Image
+            src={coupon.type === "cigarette" ? "/images/cigarroaceso.png" : "/images/pocaomarrom1.png"}
+            alt={coupon.type}
+            width={40}
+            height={40}
+            className="pixel-art"
+          />
+          <div>
+            <h1 className="text-xl font-bold text-white">
+              {coupon.type === "cigarette" ? "Vale Cigarro" : "Vale Resgate"}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {isPending && "Aguardando validação"}
+              {isApproved && "Validado com sucesso!"}
+              {isRejected && "Não aprovado"}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Coupon Card */}
+      <div className={`glass-card rounded-3xl overflow-hidden mb-6 ${
+        isApproved ? "glass-success" : ""
+      }`}>
+        <div className={`h-2 ${
+          isPending ? "gradient-primary" : isApproved ? "gradient-success" : "bg-red-500"
+        }`} />
+        
+        <div className="p-6">
+          {/* Status Badge */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <Image
+                src={coupon.type === "cigarette" ? "/images/cigarroaceso.png" : "/images/pocaomarrom1.png"}
+                alt={coupon.type}
+                width={48}
+                height={48}
+                className="pixel-art glow-teal"
+              />
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">NoSmoke</p>
+                <p className="font-semibold text-white">
+                  {coupon.type === "cigarette" ? "Vale Cigarro" : "Vale Resgate"}
+                </p>
+              </div>
+            </div>
+            
+            <Badge className={`border-0 ${
+              isPending 
+                ? "bg-amber-500/20 text-amber-400"
+                : isApproved
+                  ? "bg-emerald-500/20 text-emerald-400"
+                  : "bg-red-500/20 text-red-400"
+            }`}>
+              {isPending && <Clock className="w-3 h-3 mr-1" />}
+              {isApproved && <CheckCircle2 className="w-3 h-3 mr-1" />}
+              {isRejected && <XCircle className="w-3 h-3 mr-1" />}
+              {isPending ? "Pendente" : isApproved ? "Aprovado" : "Rejeitado"}
+            </Badge>
+          </div>
+
+          {/* Coupon Code */}
+          <div className="glass rounded-2xl p-8 text-center mb-4">
+            <p className="text-xs text-muted-foreground uppercase tracking-widest mb-3">Código</p>
+            <p className={`text-4xl md:text-5xl font-mono font-bold tracking-[0.15em] ${
+              isPending ? "text-white" : isApproved ? "text-primary glow-teal" : "text-red-400"
+            }`}>
+              {formatCouponCode(coupon.couponCode)}
+            </p>
+          </div>
+
+          <p className="text-center text-xs text-muted-foreground">
+            {new Date(coupon.createdAt).toLocaleDateString("pt-BR", {
+              day: "2-digit",
+              month: "long",
+              year: "numeric",
+            })}
           </p>
         </div>
       </div>
 
-      {/* Cupom Minimalista */}
-      <div className="relative mb-6">
-        {/* Main Card */}
-        <Card className="border-0 bg-zinc-900/80 overflow-hidden">
-          {/* Top accent - sutil */}
-          <div
-            className={`h-1 ${
-              isPending
-                ? "bg-teal-500"
-                : isApproved
-                  ? "bg-emerald-500"
-                  : "bg-red-500"
-            }`}
-          />
-
-          <CardContent className="p-0">
-            {/* Header */}
-            <div className="p-5 border-b border-zinc-800">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center">
-                    <Image
-                      src={
-                        coupon.type === "cigarette"
-                          ? "/images/cigarroaceso.png"
-                          : "/images/voucher.png"
-                      }
-                      alt={coupon.type === "cigarette" ? "Cigarro" : "Presente"}
-                      width={24}
-                      height={24}
-                      className="[image-rendering:pixelated]"
-                    />
-                  </div>
-                  <div>
-                    <p className="text-xs text-zinc-500 uppercase tracking-wider">
-                      NoSmoke
-                    </p>
-                    <p className="text-white font-semibold">
-                      {coupon.type === "cigarette"
-                        ? "Vale Cigarro"
-                        : "Vale Resgate"}
-                    </p>
-                  </div>
-                </div>
-
-                <Badge
-                  className={`text-xs ${
-                    isPending
-                      ? "bg-teal-500/10 text-teal-400 border-teal-500/20"
-                      : isApproved
-                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                        : "bg-red-500/10 text-red-400 border-red-500/20"
-                  }`}
-                >
-                  {isPending && <Clock className="w-3 h-3 mr-1" />}
-                  {isApproved && <CheckCircle2 className="w-3 h-3 mr-1" />}
-                  {isRejected && <XCircle className="w-3 h-3 mr-1" />}
-                  {isPending
-                    ? "Pendente"
-                    : isApproved
-                      ? "Aprovado"
-                      : "Rejeitado"}
-                </Badge>
-              </div>
+      {/* Details */}
+      <div className="glass-card rounded-2xl p-5 mb-6 space-y-4">
+        {coupon.type === "cigarette" && (
+          <>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Quantidade</span>
+              <span className="font-semibold text-white">
+                {coupon.amount === 0.5 ? "Meio cigarro" : "Um cigarro"}
+              </span>
             </div>
-
-            {/* Perfuração */}
-            <div className="relative h-6 flex items-center">
-              <div className="absolute left-0 w-3 h-6 bg-zinc-950 rounded-r-full -translate-x-1/2" />
-              <div className="absolute right-0 w-3 h-6 bg-zinc-950 rounded-l-full translate-x-1/2" />
-              <div className="flex-1 mx-4 border-t border-dashed border-zinc-700" />
+            <div className="h-px bg-white/10" />
+            <div>
+              <span className="text-sm text-muted-foreground">Motivo</span>
+              <p className="font-medium text-white mt-1">{coupon.reason}</p>
             </div>
-
-            {/* Código */}
-            <div className="px-5 pb-6">
-              <p className="text-center text-[10px] text-zinc-500 uppercase tracking-widest mb-3">
-                Código
-              </p>
-              <div className="bg-zinc-800/50 rounded-xl p-4">
-                <p
-                  className={`text-center text-3xl md:text-4xl font-mono font-bold tracking-[0.2em] ${
-                    isPending
-                      ? "text-white"
-                      : isApproved
-                        ? "text-emerald-400"
-                        : "text-red-400"
-                  }`}
-                >
-                  {formatCouponCode(coupon.couponCode)}
-                </p>
-              </div>
-
-              {/* Data */}
-              <p className="text-center text-xs text-zinc-600 mt-3">
-                {new Date(coupon.createdAt).toLocaleDateString("pt-BR", {
-                  day: "2-digit",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </p>
+          </>
+        )}
+        {coupon.type === "reward" && (
+          <>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Recompensa</span>
+              <span className="font-semibold text-white">{coupon.rewardTitle}</span>
             </div>
-          </CardContent>
-        </Card>
+            {coupon.rewardDescription && (
+              <>
+                <div className="h-px bg-white/10" />
+                <p className="text-sm text-muted-foreground">{coupon.rewardDescription}</p>
+              </>
+            )}
+          </>
+        )}
       </div>
 
-      {/* Detalhes do pedido */}
-      <Card className="border-0 bg-zinc-900/80 ring-1 ring-zinc-800">
-        <CardContent className="p-5 space-y-4">
-          {coupon.type === "cigarette" && (
-            <>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-zinc-500">Quantidade</span>
-                <span className="font-medium text-zinc-200 flex items-center gap-2">
-                  <Image
-                    src="/images/cigarroaceso.png"
-                    alt="Cigarro"
-                    width={18}
-                    height={18}
-                    className="[image-rendering:pixelated]"
-                  />
-                  {coupon.amount === 0.5 ? "Meio cigarro" : "Um cigarro"}
-                </span>
-              </div>
-              <div className="h-px bg-zinc-800" />
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-zinc-500">Motivo</span>
-                <span className="font-medium text-zinc-200 text-right max-w-[60%]">
-                  {coupon.reason}
-                </span>
-              </div>
-            </>
-          )}
-          {coupon.type === "reward" && (
-            <>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-zinc-500">Recompensa</span>
-                <span className="font-medium text-zinc-200">
-                  {coupon.rewardTitle}
-                </span>
-              </div>
-              {coupon.rewardDescription && (
-                <>
-                  <div className="h-px bg-zinc-800" />
-                  <p className="text-sm text-zinc-500">
-                    {coupon.rewardDescription}
-                  </p>
-                </>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Ação/Status final */}
+      {/* Status Message */}
       {isPending && (
-        <div className="mt-4 p-5 rounded-2xl bg-zinc-900/80 ring-1 ring-zinc-800">
-          <div className="flex items-center gap-4">
-            <div className="relative shrink-0">
-              <div className="absolute inset-0 bg-teal-500/30 rounded-full blur-lg animate-pulse" />
-              <Image
-                src="/images/girl.png"
-                alt="Letícia"
-                width={64}
-                height={64}
-                className="[image-rendering:pixelated] relative"
-              />
-            </div>
-            <div className="flex-1">
-              <p className="text-base text-white font-semibold">
-                Aguardando <span className="text-teal-400">Letícia</span>
-              </p>
-              <p className="text-sm text-zinc-500 mt-1 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
-                Atualizando em tempo real
-              </p>
-            </div>
-            <Clock className="h-6 w-6 text-teal-500" />
+        <div className="glass-card rounded-2xl p-5 flex items-center gap-4">
+          <div className="p-3 rounded-2xl gradient-primary animate-pulse">
+            <Clock className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <p className="font-semibold text-white">Aguardando aprovação</p>
+            <p className="text-sm text-muted-foreground flex items-center gap-2 mt-0.5">
+              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              Atualizando em tempo real
+            </p>
           </div>
         </div>
       )}
 
       {isApproved && (
-        <div className="mt-4 p-5 rounded-2xl bg-zinc-900/80 ring-1 ring-zinc-800">
-          <div className="flex items-center gap-4">
-            <div className="relative shrink-0">
-              <Image
-                src="/images/girl.png"
-                alt="Letícia"
-                width={64}
-                height={64}
-                className="[image-rendering:pixelated]"
-              />
-            </div>
-            <div className="flex-1">
-              <p className="text-base text-white font-semibold flex items-center gap-2">
-                Aprovado por <span className="text-emerald-400">Letícia</span>
-                <span>🎉</span>
-              </p>
-              <p className="text-sm text-zinc-500 mt-1">
-                Seu cupom foi validado com sucesso
-              </p>
-            </div>
-            <CheckCircle2 className="h-6 w-6 text-emerald-500" />
+        <div className="glass-success rounded-2xl p-5 flex items-center gap-4">
+          <div className="p-3 rounded-2xl gradient-success">
+            <CheckCircle2 className="h-6 w-6 text-white" />
           </div>
+          <div>
+            <p className="font-semibold text-white">Cupom aprovado!</p>
+            <p className="text-sm text-muted-foreground">
+              Seu cupom foi validado com sucesso 🎉
+            </p>
+          </div>
+          <Image
+            src="/images/trophy.png"
+            alt="Sucesso"
+            width={48}
+            height={48}
+            className="pixel-art ml-auto glow-gold"
+          />
         </div>
       )}
 
       {isRejected && (
-        <div className="mt-4 p-5 rounded-2xl bg-zinc-900/80 ring-1 ring-zinc-800">
-          <div className="flex items-center gap-4">
-            <div className="relative shrink-0">
-              <Image
-                src="/images/girl.png"
-                alt="Letícia"
-                width={64}
-                height={64}
-                className="[image-rendering:pixelated] opacity-60"
-              />
-            </div>
-            <div className="flex-1">
-              <p className="text-base text-white font-semibold">
-                Rejeitado por <span className="text-red-400">Letícia</span>
-              </p>
-              <p className="text-sm text-zinc-500 mt-1">
-                Este cupom não foi aprovado
-              </p>
-            </div>
-            <XCircle className="h-6 w-6 text-red-500" />
+        <div className="glass-card rounded-2xl p-5 border-l-4 border-l-red-500 flex items-center gap-4">
+          <div className="p-3 rounded-2xl bg-red-500">
+            <XCircle className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <p className="font-semibold text-white">Cupom rejeitado</p>
+            <p className="text-sm text-muted-foreground">
+              Este cupom não foi aprovado
+            </p>
           </div>
         </div>
       )}

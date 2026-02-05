@@ -1,253 +1,231 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getUserHistory } from "@/actions/history";
-import { formatCouponCode } from "@/lib/coupon";
-import { Clock, CheckCircle2, XCircle, Loader2 } from "lucide-react";
-import Link from "next/link";
+import { getCigRequestHistory, getCigRequestStats } from "@/actions/cig-request";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { 
+  ChevronDown, 
+  Check, 
+  Clock, 
+  X, 
+  Loader2
+} from "lucide-react";
 import Image from "next/image";
 
-type CigHistory = {
+type HistoryItem = {
   id: string;
-  amount: number;
-  reason: string;
+  amount: string;
+  reason: string | null;
   status: string;
-  couponCode: string | null;
   createdAt: string;
   dateBr: string;
 };
 
-type RewardHistory = {
-  id: string;
-  rewardTitle: string;
-  status: string;
-  couponCode: string | null;
-  createdAt: string;
-  dateBr: string;
+type Stats = {
+  today: number;
+  week: number;
+  month: number;
 };
 
-function StatusBadge({ status }: { status: string }) {
-  if (status === "PENDING") {
-    return (
-      <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">
-        <Clock className="h-3 w-3 mr-1" />
-        Pendente
-      </Badge>
-    );
-  }
-  if (status === "APPROVED" || status === "VALIDATED") {
-    return (
-      <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
-        <CheckCircle2 className="h-3 w-3 mr-1" />
-        Aprovado
-      </Badge>
-    );
-  }
-  return (
-    <Badge className="bg-red-500/20 text-red-400 border-red-500/30">
-      <XCircle className="h-3 w-3 mr-1" />
-      Rejeitado
-    </Badge>
-  );
-}
-
-function formatDate(dateStr: string) {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
+const STATUS_CONFIG: Record<string, { label: string; color: string; bgColor: string; icon: React.ReactNode }> = {
+  PENDING: { 
+    label: "Pendente", 
+    color: "text-amber-400", 
+    bgColor: "bg-amber-500/10",
+    icon: <Clock className="w-3.5 h-3.5" /> 
+  },
+  APPROVED: { 
+    label: "Aprovado", 
+    color: "text-emerald-400", 
+    bgColor: "bg-emerald-500/10",
+    icon: <Check className="w-3.5 h-3.5" /> 
+  },
+  VALIDATED: { 
+    label: "Validado", 
+    color: "text-emerald-400", 
+    bgColor: "bg-emerald-500/10",
+    icon: <Check className="w-3.5 h-3.5" /> 
+  },
+  REJECTED: { 
+    label: "Rejeitado", 
+    color: "text-red-400", 
+    bgColor: "bg-red-500/10",
+    icon: <X className="w-3.5 h-3.5" /> 
+  },
+};
 
 export default function HistoricoPage() {
+  const [items, setItems] = useState<HistoryItem[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [cigarettes, setCigarettes] = useState<CigHistory[]>([]);
-  const [rewards, setRewards] = useState<RewardHistory[]>([]);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const loadData = async (pageNum: number, append = false) => {
+    const [historyData, statsData] = await Promise.all([
+      getCigRequestHistory(pageNum),
+      pageNum === 1 ? getCigRequestStats() : null,
+    ]);
+
+    if (append) {
+      setItems((prev) => [...prev, ...historyData.items]);
+    } else {
+      setItems(historyData.items);
+    }
+    setHasMore(historyData.hasMore);
+    if (statsData) setStats(statsData);
+    setLoading(false);
+    setLoadingMore(false);
+  };
 
   useEffect(() => {
-    getUserHistory().then((data) => {
-      setCigarettes(data.cigarettes);
-      setRewards(data.rewards);
-      setLoading(false);
-    });
+    loadData(1);
   }, []);
+
+  const handleLoadMore = () => {
+    setLoadingMore(true);
+    const nextPage = page + 1;
+    setPage(nextPage);
+    loadData(nextPage, true);
+  };
 
   if (loading) {
     return (
-      <div className="min-h-[50vh] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-teal-500" />
+      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-4">
+        <div className="w-12 h-12 rounded-xl bg-[#1a1a24] flex items-center justify-center">
+          <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />
+        </div>
+        <p className="text-white/50 text-sm">Carregando...</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 pb-4">
-      <div className="flex items-center gap-3">
-        <Image
-          src="/images/soldadodfoof.png"
-          alt="Histórico"
-          width={40}
-          height={40}
-          className="[image-rendering:pixelated]"
-        />
+    <div className="space-y-5 pb-24">
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-white">Histórico</h1>
-          <p className="text-sm text-zinc-500">Seus pedidos e resgates</p>
+          <h1 className="text-xl font-semibold text-white">Histórico</h1>
+          <p className="text-xs text-white/50 mt-0.5">Seus pedidos de cigarro</p>
+        </div>
+        <div className="w-10 h-10 rounded-xl bg-[#1a1a24] border border-white/5 flex items-center justify-center">
+          <Image src="/images/bau.png" alt="" width={24} height={24} className="pixel-art" />
         </div>
       </div>
 
-      <Tabs defaultValue="cigarettes" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 bg-zinc-900 p-1 md:w-fit md:mx-0">
-          <TabsTrigger
-            value="cigarettes"
-            className="gap-2 data-[state=active]:bg-zinc-800 data-[state=active]:text-white"
-          >
-            <Image
-              src="/images/cigarroapagado,.png"
-              alt="Cigarros"
-              width={16}
-              height={16}
-              className="[image-rendering:pixelated]"
-            />
-            Cigarros
-          </TabsTrigger>
-          <TabsTrigger
-            value="rewards"
-            className="gap-2 data-[state=active]:bg-zinc-800 data-[state=active]:text-white"
-          >
-            <Image
-              src="/images/pocaomarrom1.png"
-              alt="Resgates"
-              width={16}
-              height={16}
-              className="[image-rendering:pixelated]"
-            />
-            Resgates
-          </TabsTrigger>
-        </TabsList>
+      {/* Stats */}
+      {stats && (
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-[#12121a] rounded-xl p-4 border border-white/5 text-center">
+            <p className="text-2xl font-bold text-white">{stats.today}</p>
+            <p className="text-[10px] text-white/40 uppercase tracking-wider mt-1">Hoje</p>
+          </div>
+          <div className="bg-[#12121a] rounded-xl p-4 border border-white/5 text-center">
+            <p className="text-2xl font-bold text-white">{stats.week}</p>
+            <p className="text-[10px] text-white/40 uppercase tracking-wider mt-1">Semana</p>
+          </div>
+          <div className="bg-[#12121a] rounded-xl p-4 border border-white/5 text-center">
+            <p className="text-2xl font-bold text-white">{stats.month}</p>
+            <p className="text-[10px] text-white/40 uppercase tracking-wider mt-1">Mês</p>
+          </div>
+        </div>
+      )}
 
-        <TabsContent value="cigarettes" className="mt-4">
-          {cigarettes.length === 0 ? (
-            <Card className="border-0 bg-zinc-900/80">
-              <CardContent className="py-12 text-center">
-                <Image
-                  src="/images/cigarroapagado,.png"
-                  alt="Nenhum pedido"
-                  width={48}
-                  height={48}
-                  className="[image-rendering:pixelated] mx-auto mb-4 opacity-50"
-                />
-                <p className="text-zinc-500">Nenhum pedido ainda</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {cigarettes.map((cig) => (
-                <Card key={cig.id} className="border-0 bg-zinc-900/80">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-zinc-800 flex items-center justify-center">
-                          <Image
-                            src="/images/cigarroaceso.png"
-                            alt="Cigarro"
-                            width={24}
-                            height={24}
-                            className="[image-rendering:pixelated]"
-                          />
-                        </div>
-                        <div>
-                          <p className="font-medium text-white">
-                            {cig.amount === 0.5 ? "½ cigarro" : "1 cigarro"}
-                          </p>
-                          <p className="text-sm text-zinc-500">{cig.reason}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <StatusBadge status={cig.status} />
-                        <p className="text-xs text-zinc-600 mt-1">
-                          {formatDate(cig.createdAt)}
-                        </p>
+      {/* List */}
+      {items.length === 0 ? (
+        <div className="bg-[#12121a] rounded-2xl p-12 border border-white/5 text-center">
+          <Image
+            src="/images/cigarroapagado.png"
+            alt=""
+            width={40}
+            height={40}
+            className="pixel-art opacity-30 mx-auto mb-4"
+          />
+          <p className="text-white/40 text-sm">Nenhum pedido ainda</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {items.map((item) => {
+            const statusConfig = STATUS_CONFIG[item.status] || STATUS_CONFIG.PENDING;
+            const isHalf = parseFloat(item.amount) === 0.5;
+
+            return (
+              <div
+                key={item.id}
+                className="bg-[#12121a] rounded-xl p-4 border border-white/5"
+              >
+                <div className="flex items-center gap-3">
+                  {/* Icon */}
+                  <div className={cn(
+                    "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
+                    statusConfig.bgColor
+                  )}>
+                    <Image
+                      src={isHalf ? "/images/cigarroapagado.png" : "/images/cigarroaceso.png"}
+                      alt=""
+                      width={22}
+                      height={22}
+                      className="pixel-art"
+                    />
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-medium text-white text-sm">
+                        {isHalf ? "½ cigarro" : "1 cigarro"}
+                      </span>
+                      <div className={cn(
+                        "flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium",
+                        statusConfig.bgColor,
+                        statusConfig.color
+                      )}>
+                        {statusConfig.icon}
+                        <span>{statusConfig.label}</span>
                       </div>
                     </div>
-                    {cig.couponCode && cig.status === "PENDING" && (
-                      <Link
-                        href={`/app/cupom/${cig.couponCode}`}
-                        className="block mt-3 text-center text-sm text-teal-400 hover:text-teal-300"
-                      >
-                        Ver cupom: {formatCouponCode(cig.couponCode)}
-                      </Link>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="rewards" className="mt-4">
-          {rewards.length === 0 ? (
-            <Card className="border-0 bg-zinc-900/80">
-              <CardContent className="py-12 text-center">
-                <Image
-                  src="/images/pocaomarrom1.png"
-                  alt="Nenhum resgate"
-                  width={48}
-                  height={48}
-                  className="[image-rendering:pixelated] mx-auto mb-4 opacity-50"
-                />
-                <p className="text-zinc-500">Nenhum resgate ainda</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {rewards.map((reward) => (
-                <Card key={reward.id} className="border-0 bg-zinc-900/80">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-teal-500/20 flex items-center justify-center">
-                          <Image
-                            src="/images/pocaomarrom1.png"
-                            alt="Recompensa"
-                            width={24}
-                            height={24}
-                            className="[image-rendering:pixelated]"
-                          />
-                        </div>
-                        <div>
-                          <p className="font-medium text-white">
-                            {reward.rewardTitle}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <StatusBadge status={reward.status} />
-                        <p className="text-xs text-zinc-600 mt-1">
-                          {formatDate(reward.createdAt)}
-                        </p>
-                      </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[11px] text-white/40">{item.dateBr}</span>
+                      {item.reason && (
+                        <>
+                          <span className="text-white/20">•</span>
+                          <span className="text-[11px] text-white/40 truncate">{item.reason}</span>
+                        </>
+                      )}
                     </div>
-                    {reward.couponCode && reward.status === "PENDING" && (
-                      <Link
-                        href={`/app/cupom/${reward.couponCode}`}
-                        className="block mt-3 text-center text-sm text-teal-400 hover:text-teal-300"
-                      >
-                        Ver cupom: {formatCouponCode(reward.couponCode)}
-                      </Link>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Load More */}
+      {hasMore && (
+        <div className="flex justify-center">
+          <Button
+            variant="outline"
+            onClick={handleLoadMore}
+            disabled={loadingMore}
+            className="bg-[#12121a] border-white/10 text-white/60 hover:bg-[#1a1a24] hover:text-white rounded-xl"
+          >
+            {loadingMore ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Carregando...
+              </>
+            ) : (
+              <>
+                <ChevronDown className="w-4 h-4 mr-2" />
+                Carregar mais
+              </>
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

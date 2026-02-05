@@ -1,365 +1,288 @@
-"use client";
-
-import { useState, useEffect, useTransition } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { getPendingRequestsAdmin, getPendingRedemptionsAdmin } from "@/actions/admin";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-import {
-  getPendingRequestsAdmin,
-  getPendingRedemptionsAdmin,
-  approveOrRejectRequest,
-  validateOrRejectRedemption,
-  getAdminDashboardStats,
-} from "@/actions/admin";
-import { useToast } from "@/components/ui/use-toast";
-import {
-  Cigarette,
-  Gift,
-  Check,
-  X,
-  Loader2,
-  ClipboardList,
-} from "lucide-react";
-import { formatNumber } from "@/lib/utils";
+import Link from "next/link";
+import { AlertCircle, Clock, Check, Plus, Settings, History } from "lucide-react";
+import Image from "next/image";
 
-type PendingRequest = {
-  id: string;
-  userName: string;
-  amount: number;
-  reason1: string;
-  reason2: string;
-  createdAt: string;
-  dateBr: string;
-};
+export const dynamic = "force-dynamic";
 
-type PendingRedemption = {
-  id: string;
-  userName: string;
-  rewardTitle: string;
-  costXp: number;
-  createdAt: string;
-  dateBr: string;
-};
+export default async function AdminDashboard() {
+  const [pendingRequests, pendingRedemptions] = await Promise.all([
+    getPendingRequestsAdmin(),
+    getPendingRedemptionsAdmin(),
+  ]);
 
-type Stats = {
-  pendingRequests: number;
-  pendingRedemptions: number;
-  todayTotal: number;
-  todayLimit: number;
-  todayApproved: number;
-  todayRejected: number;
-};
-
-export default function AdminPage() {
-  const { toast } = useToast();
-  const [isPending, startTransition] = useTransition();
-  const [pendingId, setPendingId] = useState<string | null>(null);
-
-  const [requests, setRequests] = useState<PendingRequest[]>([]);
-  const [redemptions, setRedemptions] = useState<PendingRedemption[]>([]);
-  const [stats, setStats] = useState<Stats | null>(null);
-
-  const loadData = async () => {
-    const [reqData, redemData, statsData] = await Promise.all([
-      getPendingRequestsAdmin(),
-      getPendingRedemptionsAdmin(),
-      getAdminDashboardStats(),
-    ]);
-    setRequests(reqData);
-    setRedemptions(redemData);
-    setStats(statsData);
-  };
-
-  useEffect(() => {
-    loadData();
-    // Auto-refresh a cada 30 segundos
-    const interval = setInterval(loadData, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleRequestAction = async (
-    requestId: string,
-    action: "approve" | "reject",
-  ) => {
-    setPendingId(requestId);
-
-    const formData = new FormData();
-    formData.set("requestId", requestId);
-    formData.set("action", action);
-
-    startTransition(async () => {
-      const result = await approveOrRejectRequest(formData);
-
-      if (result.error) {
-        toast({
-          title: "Erro",
-          description: result.error,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: action === "approve" ? "Entregue! ✓" : "Recusado",
-          description:
-            action === "approve"
-              ? "Pedido aprovado e entregue"
-              : "Pedido recusado",
-          variant: action === "approve" ? "success" : "default",
-        });
-        await loadData();
-      }
-
-      setPendingId(null);
-    });
-  };
-
-  const handleRedemptionAction = async (
-    redemptionId: string,
-    action: "validate" | "reject",
-  ) => {
-    setPendingId(redemptionId);
-
-    const formData = new FormData();
-    formData.set("redemptionId", redemptionId);
-    formData.set("action", action);
-
-    startTransition(async () => {
-      const result = await validateOrRejectRedemption(formData);
-
-      if (result.error) {
-        toast({
-          title: "Erro",
-          description: result.error,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: action === "validate" ? "Validado! ✓" : "Recusado",
-          description:
-            action === "validate"
-              ? "Recompensa validada"
-              : "Resgate recusado, XP devolvido",
-          variant: action === "validate" ? "success" : "default",
-        });
-        await loadData();
-      }
-
-      setPendingId(null);
-    });
-  };
+  const totalPending = pendingRequests.length + pendingRedemptions.length;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-white">Painel Admin</h1>
-        <p className="text-zinc-500">Gerencie pedidos e recompensas</p>
+    <div className="space-y-6 pb-6">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <Image
+          src="/images/healer.png"
+          alt="Admin"
+          width={56}
+          height={56}
+          className="pixel-art glow-purple"
+        />
+        <div>
+          <h1 className="text-2xl font-bold text-white">Painel Admin</h1>
+          <p className="text-sm text-muted-foreground">
+            Gerencie solicitações e recompensas
+          </p>
+        </div>
       </div>
 
-      {/* Stats */}
-      {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <Card className="border-0 bg-zinc-900/80">
-            <CardContent className="p-4">
-              <p className="text-xs text-zinc-500 uppercase tracking-wider">
-                Pendentes
-              </p>
-              <p className="text-2xl font-bold text-white">
-                {stats.pendingRequests}
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="border-0 bg-zinc-900/80">
-            <CardContent className="p-4">
-              <p className="text-xs text-zinc-500 uppercase tracking-wider">
-                Hoje
-              </p>
-              <p className="text-2xl font-bold text-white">
-                {formatNumber(stats.todayTotal)}/
-                {formatNumber(stats.todayLimit)}
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="border-0 bg-zinc-900/80">
-            <CardContent className="p-4">
-              <p className="text-xs text-zinc-500 uppercase tracking-wider">
-                Aprovados
-              </p>
-              <p className="text-2xl font-bold text-emerald-400">
-                {stats.todayApproved}
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="border-0 bg-zinc-900/80">
-            <CardContent className="p-4">
-              <p className="text-xs text-zinc-500 uppercase tracking-wider">
-                Resgates
-              </p>
-              <p className="text-2xl font-bold text-teal-400">
-                {stats.pendingRedemptions}
-              </p>
-            </CardContent>
-          </Card>
+      {/* Summary Card */}
+      <div className="glass-card glass-glow rounded-2xl p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground mb-1">Pendentes</p>
+            <p className="text-4xl font-bold text-white stat-number">{totalPending}</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="text-center">
+              <Image
+                src="/images/cigarroaceso.png"
+                alt="Cigarros"
+                width={32}
+                height={32}
+                className="pixel-art mx-auto mb-1"
+              />
+              <span className="text-lg font-bold text-white">{pendingRequests.length}</span>
+              <p className="text-xs text-muted-foreground">Cigarros</p>
+            </div>
+            <div className="text-center">
+              <Image
+                src="/images/pocaomarrom1.png"
+                alt="Resgates"
+                width={32}
+                height={32}
+                className="pixel-art mx-auto mb-1"
+              />
+              <span className="text-lg font-bold text-white">{pendingRedemptions.length}</span>
+              <p className="text-xs text-muted-foreground">Resgates</p>
+            </div>
+          </div>
         </div>
-      )}
+      </div>
 
-      <Tabs defaultValue="requests">
-        <TabsList className="bg-zinc-900 p-1">
-          <TabsTrigger
-            value="requests"
-            className="gap-2 data-[state=active]:bg-zinc-800 data-[state=active]:text-white"
-          >
-            <Cigarette className="h-4 w-4" />
-            Pedidos ({requests.length})
-          </TabsTrigger>
-          <TabsTrigger
-            value="redemptions"
-            className="gap-2 data-[state=active]:bg-zinc-800 data-[state=active]:text-white"
-          >
-            <Gift className="h-4 w-4" />
-            Resgates ({redemptions.length})
-          </TabsTrigger>
-        </TabsList>
+      {/* Quick Actions Grid */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* Validar */}
+        <Link href="/admin/validar" className="block">
+          <div className={`glass-card rounded-2xl p-4 hover:glass-glow transition-all ${totalPending > 0 ? "border-amber-500/30" : ""}`}>
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${totalPending > 0 ? "bg-amber-500/20" : "bg-muted/30"}`}>
+                <AlertCircle className={`w-5 h-5 ${totalPending > 0 ? "text-amber-400" : "text-muted-foreground"}`} />
+              </div>
+              <div>
+                <p className="font-semibold text-white text-sm">Validar</p>
+                <p className="text-xs text-muted-foreground">
+                  {totalPending > 0 ? `${totalPending} pendentes` : "Nada pendente"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </Link>
 
-        <TabsContent value="requests" className="space-y-3 mt-4">
-          {requests.length === 0 ? (
-            <Card className="border-0 bg-zinc-900/80">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <ClipboardList className="h-12 w-12 mb-4 text-zinc-700" />
-                <p className="text-zinc-500">Nenhum pedido pendente</p>
-              </CardContent>
-            </Card>
-          ) : (
-            requests.map((request) => (
-              <Card key={request.id} className="border-0 bg-zinc-900/80">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-2 flex-1 min-w-0">
-                      <div className="flex items-center gap-3">
-                        <Badge
-                          className={
-                            request.amount === 1
-                              ? "bg-teal-500/20 text-teal-400 border-teal-500/30"
-                              : "bg-zinc-800 text-zinc-400 border-zinc-700"
-                          }
-                        >
-                          {request.amount === 1 ? "1" : "½"}
-                        </Badge>
-                        <div className="min-w-0">
-                          <p className="font-medium text-white truncate">
-                            {request.userName}
-                          </p>
-                          <p className="text-xs text-zinc-500">
-                            {request.createdAt}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        <Badge className="bg-zinc-800 text-zinc-400 border-zinc-700 text-xs">
-                          {request.reason1}
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="flex gap-2 shrink-0">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="border-zinc-700 hover:bg-red-950 hover:text-red-400 hover:border-red-500/30"
-                        onClick={() =>
-                          handleRequestAction(request.id, "reject")
-                        }
-                        disabled={isPending && pendingId === request.id}
-                      >
-                        {isPending && pendingId === request.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <X className="h-4 w-4" />
-                        )}
-                      </Button>
-                      <Button
-                        className="bg-emerald-600 hover:bg-emerald-700"
-                        onClick={() =>
-                          handleRequestAction(request.id, "approve")
-                        }
-                        disabled={isPending && pendingId === request.id}
-                      >
-                        {isPending && pendingId === request.id ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                          <Check className="mr-2 h-4 w-4" />
-                        )}
-                        Entregar
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+        {/* Adicionar Cigarro */}
+        <Link href="/admin/adicionar" className="block">
+          <div className="glass-card rounded-2xl p-4 hover:glass-glow transition-all">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                <Plus className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-semibold text-white text-sm">Adicionar</p>
+                <p className="text-xs text-muted-foreground">Cigarro manual</p>
+              </div>
+            </div>
+          </div>
+        </Link>
+
+        {/* Histórico */}
+        <Link href="/admin/historico" className="block">
+          <div className="glass-card rounded-2xl p-4 hover:glass-glow transition-all">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
+                <History className="w-5 h-5 text-cyan-400" />
+              </div>
+              <div>
+                <p className="font-semibold text-white text-sm">Histórico</p>
+                <p className="text-xs text-muted-foreground">Ver todos</p>
+              </div>
+            </div>
+          </div>
+        </Link>
+
+        {/* Configurações */}
+        <Link href="/admin/config" className="block">
+          <div className="glass-card rounded-2xl p-4 hover:glass-glow transition-all">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-muted/30 flex items-center justify-center">
+                <Settings className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="font-semibold text-white text-sm">Config</p>
+                <p className="text-xs text-muted-foreground">Sistema</p>
+              </div>
+            </div>
+          </div>
+        </Link>
+      </div>
+
+      {/* Pending Requests */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <Image
+            src="/images/cigarroaceso.png"
+            alt="Cigarros"
+            width={24}
+            height={24}
+            className="pixel-art"
+          />
+          <h2 className="text-lg font-bold text-white">Pedidos de Cigarro</h2>
+          {pendingRequests.length > 0 && (
+            <Badge className="bg-amber-500/20 text-amber-400 border-0">
+              {pendingRequests.length}
+            </Badge>
           )}
-        </TabsContent>
+        </div>
 
-        <TabsContent value="redemptions" className="space-y-3 mt-4">
-          {redemptions.length === 0 ? (
-            <Card className="border-0 bg-zinc-900/80">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Gift className="h-12 w-12 mb-4 text-zinc-700" />
-                <p className="text-zinc-500">Nenhum resgate pendente</p>
-              </CardContent>
-            </Card>
-          ) : (
-            redemptions.map((redemption) => (
-              <Card key={redemption.id} className="border-0 bg-zinc-900/80">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1 flex-1 min-w-0">
-                      <p className="font-medium text-white truncate">
-                        {redemption.rewardTitle}
-                      </p>
-                      <p className="text-sm text-zinc-500">
-                        {redemption.userName} • {redemption.createdAt}
-                      </p>
-                      <Badge className="bg-teal-500/20 text-teal-400 border-teal-500/30">
-                        {redemption.costXp} XP
+        {pendingRequests.length === 0 ? (
+          <div className="glass-card rounded-2xl p-8 text-center">
+            <Check className="w-12 h-12 mx-auto mb-3 text-emerald-400" />
+            <p className="text-muted-foreground">Nenhum pedido pendente</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {pendingRequests.slice(0, 5).map((req) => (
+              <div key={req.id} className="glass-card rounded-2xl p-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 glass rounded-xl flex items-center justify-center">
+                    <Image
+                      src="/images/cigarroaceso.png"
+                      alt="Cigarro"
+                      width={28}
+                      height={28}
+                      className="pixel-art"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold text-white">{req.userName}</p>
+                      <Badge className="bg-amber-500/20 text-amber-400 border-0">
+                        <Clock className="w-3 h-3 mr-1" />
+                        Pendente
                       </Badge>
                     </div>
-                    <div className="flex gap-2 shrink-0">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="border-zinc-700 hover:bg-red-950 hover:text-red-400 hover:border-red-500/30"
-                        onClick={() =>
-                          handleRedemptionAction(redemption.id, "reject")
-                        }
-                        disabled={isPending && pendingId === redemption.id}
-                      >
-                        {isPending && pendingId === redemption.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <X className="h-4 w-4" />
-                        )}
-                      </Button>
-                      <Button
-                        className="bg-emerald-600 hover:bg-emerald-700"
-                        onClick={() =>
-                          handleRedemptionAction(redemption.id, "validate")
-                        }
-                        disabled={isPending && pendingId === redemption.id}
-                      >
-                        {isPending && pendingId === redemption.id ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                          <Check className="mr-2 h-4 w-4" />
-                        )}
-                        Validar
-                      </Button>
-                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {req.amount === "0.5" ? "½ cigarro" : `${req.amount} cigarro`} • {req.reason}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {req.dateBr}
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
-            ))
+                </div>
+              </div>
+            ))}
+
+            {pendingRequests.length > 5 && (
+              <Link href="/admin/validar">
+                <div className="glass-card rounded-2xl p-4 text-center hover:glass-glow transition-all">
+                  <p className="text-primary font-medium">
+                    Ver todos ({pendingRequests.length})
+                  </p>
+                </div>
+              </Link>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Pending Redemptions */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <Image
+            src="/images/pocaomarrom1.png"
+            alt="Resgates"
+            width={24}
+            height={24}
+            className="pixel-art"
+          />
+          <h2 className="text-lg font-bold text-white">Resgates de Recompensa</h2>
+          {pendingRedemptions.length > 0 && (
+            <Badge className="bg-amber-500/20 text-amber-400 border-0">
+              {pendingRedemptions.length}
+            </Badge>
           )}
-        </TabsContent>
-      </Tabs>
+        </div>
+
+        {pendingRedemptions.length === 0 ? (
+          <div className="glass-card rounded-2xl p-8 text-center">
+            <Check className="w-12 h-12 mx-auto mb-3 text-emerald-400" />
+            <p className="text-muted-foreground">Nenhum resgate pendente</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {pendingRedemptions.slice(0, 5).map((red) => (
+              <div key={red.id} className="glass-card rounded-2xl p-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 glass rounded-xl flex items-center justify-center">
+                    <Image
+                      src="/images/pocaomarrom1.png"
+                      alt="Recompensa"
+                      width={28}
+                      height={28}
+                      className="pixel-art"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold text-white">{red.userName}</p>
+                      <Badge className="bg-amber-500/20 text-amber-400 border-0">
+                        <Clock className="w-3 h-3 mr-1" />
+                        Pendente
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {red.rewardTitle}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {red.dateBr}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {pendingRedemptions.length > 5 && (
+              <Link href="/admin/validar">
+                <div className="glass-card rounded-2xl p-4 text-center hover:glass-glow transition-all">
+                  <p className="text-primary font-medium">
+                    Ver todos ({pendingRedemptions.length})
+                  </p>
+                </div>
+              </Link>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="text-center py-6 space-y-2">
+        <Image
+          src="/images/girl.png"
+          alt="NoSmoke"
+          width={48}
+          height={48}
+          className="pixel-art mx-auto animate-float"
+        />
+        <p className="text-sm text-muted-foreground">
+          Ajudando na jornada da Letícia 💜
+        </p>
+      </div>
     </div>
   );
 }

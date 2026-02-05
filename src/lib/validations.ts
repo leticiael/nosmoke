@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const loginSchema = z.object({
   email: z.string().email("Email inválido"),
-  password: z.string().min(1, "Senha obrigatória"),
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
 });
 
 export const cigRequestSchema = z.object({
@@ -38,6 +38,9 @@ export const updateConfigSchema = z.object({
   defaultDailyLimit: z.coerce.number().min(0.5).max(20).optional(),
   extraCost05: z.coerce.number().min(0).max(100).optional(),
   extraCost10: z.coerce.number().min(0).max(100).optional(),
+  // Novo sistema de mesada
+  dailyXpEnabled: z.coerce.boolean().optional(),
+  xpPerCig: z.coerce.number().min(1).max(200).optional(),
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;

@@ -17,7 +17,21 @@ import {
   getUserXp,
   grantDailyAllowance,
   getDailyXpStats,
+  getTotalsForDays,
+  getSystemConfig,
 } from "@/lib/calculations";
+
+interface MissionData {
+  id: string;
+  missionId: string;
+  title: string;
+  description: string | null;
+  xpReward: number;
+  type: string;
+  progress: number;
+  target: number;
+  status: string;
+}
 
 export async function getUserDashboard() {
   const session = await auth();
@@ -30,44 +44,150 @@ export async function getUserDashboard() {
 
   const stats = await getDashboardStats(session.user.id);
   const dailyXp = await getDailyXpStats(session.user.id);
+  
+  // Dados adicionais para o dashboard
+  const today = todayBrasilia();
+  const weekStart = getWeekStart();
+  const weekEnd = getWeekEnd();
+  const weekDays = getCurrentWeekDays();
+  
+  // Busca limites e totais da semana
+  const totalsMap = await getTotalsForDays(weekDays);
+  const dayLimits = await prisma.dayLimit.findMany({
+    where: { date: { in: weekDays } },
+    select: { date: true, limitCigs: true },
+  });
+  const limitsMap = new Map(dayLimits.map(dl => [dl.date, dl.limitCigs.toNumber()]));
+  
+  const config = await prisma.systemConfig.findFirst();
+  const defaultLimit = config?.defaultDailyLimit?.toNumber() ?? 3.5;
+  
+  // Calcula streak e total semanal
+  let streakDays = 0;
+  let streakBroken = false;
+  const sortedDays = [...weekDays].filter(d => d <= today).sort((a, b) => b.localeCompare(a));
+  
+  for (const day of sortedDays) {
+    const dayTotal = totalsMap.get(day) ?? 0;
+    const dayLimit = limitsMap.get(day) ?? defaultLimit;
+    if (dayTotal <= dayLimit && !streakBroken) {
+      streakDays++;
+    } else {
+      streakBroken = true;
+    }
+  }
+  
+  // XP ganho na semana
+  const weeklyXpResult = await prisma.xpLedger.aggregate({
+    where: {
+      userId: session.user.id,
+      delta: { gt: 0 },
+      createdAt: {
+        gte: new Date(`${weekStart}T00:00:00-03:00`),
+        lte: new Date(`${weekEnd}T23:59:59-03:00`),
+      },
+    },
+    _sum: { delta: true },
+  });
+  const weeklyXpRaw = weeklyXpResult._sum.delta;
+  const weeklyXp = weeklyXpRaw 
+    ? (typeof weeklyXpRaw === "number" ? weeklyXpRaw : Number(weeklyXpRaw))
+    : 0;
 
   return {
     ...stats,
+    name: session.user.name,
     userName: session.user.name,
-    dailyXp, // Novo: info da mesada
+    dailyXp,
+    streakDays,
+    weeklyXp,
+    weeklyTotal: stats.weekTotal,
+    weeklyLimit: Math.round(defaultLimit * 7),
   };
 }
 
 export async function getProgressData() {
   const session = await auth();
   if (!session?.user?.id) {
-    return { chartData: [], weekSummary: null };
+    return null;
   }
 
-  const chartData = await getProgressChartData();
+  const today = todayBrasilia();
+  const weekStart = getWeekStart();
+  const weekEnd = getWeekEnd();
 
-  // Resumo da semana
+  // Resumo da semana - busca todos os dados em batch para evitar N+1
   const weekDays = getCurrentWeekDays();
+  const totalsMap = await getTotalsForDays(weekDays);
+  
+  // Busca todos os limits em uma query
+  const dayLimits = await prisma.dayLimit.findMany({
+    where: { date: { in: weekDays } },
+    select: { date: true, limitCigs: true },
+  });
+  const limitsMap = new Map(dayLimits.map(dl => [dl.date, dl.limitCigs.toNumber()]));
+  
+  // Busca o limite padrão
+  const config = await prisma.systemConfig.findFirst();
+  const defaultLimit = config?.defaultDailyLimit?.toNumber() ?? 3.5;
+
   let daysUnderLimit = 0;
   let totalWeek = 0;
+  let streakDays = 0;
+  let streakBroken = false;
 
-  for (const day of weekDays) {
-    const dayTotal = await getTotalForDay(day);
-    const dayLimit = await getDayLimit(day);
+  // Ordena os dias da semana do mais recente para o mais antigo para calcular streak
+  const sortedDays = [...weekDays].filter(d => d <= today).sort((a, b) => b.localeCompare(a));
+
+  for (const day of sortedDays) {
+    const dayTotal = totalsMap.get(day) ?? 0;
+    const dayLimit = limitsMap.get(day) ?? defaultLimit;
     totalWeek += dayTotal;
     if (dayTotal <= dayLimit) {
       daysUnderLimit++;
+      if (!streakBroken) {
+        streakDays++;
+      }
+    } else {
+      streakBroken = true;
     }
   }
 
-  return {
-    chartData,
-    weekSummary: {
-      daysUnderLimit,
-      totalDays: weekDays.length,
-      totalWeek,
-      averagePerDay: totalWeek / weekDays.length,
+  // Busca XP total e da semana
+  const totalXp = await getUserXp(session.user.id);
+  
+  const weeklyXpResult = await prisma.xpLedger.aggregate({
+    where: {
+      userId: session.user.id,
+      delta: { gt: 0 },
+      createdAt: {
+        gte: new Date(`${weekStart}T00:00:00-03:00`),
+        lte: new Date(`${weekEnd}T23:59:59-03:00`),
+      },
     },
+    _sum: { delta: true },
+  });
+  const weeklyXpRaw = weeklyXpResult._sum.delta;
+  const weeklyXp = weeklyXpRaw 
+    ? (typeof weeklyXpRaw === "number" ? weeklyXpRaw : Number(weeklyXpRaw))
+    : 0;
+
+  // Formata as datas para exibição
+  const formatDateBr = (dateStr: string) => {
+    const [year, month, day] = dateStr.split("-");
+    return `${day}/${month}`;
+  };
+
+  return {
+    daysUnderLimit,
+    streakDays,
+    weeklyTotal: totalWeek,
+    weeklyLimit: defaultLimit * 7,
+    currentLimit: defaultLimit,
+    totalXp,
+    weeklyXp,
+    weekStart: formatDateBr(weekStart),
+    weekEnd: formatDateBr(weekEnd),
   };
 }
 
@@ -95,8 +215,11 @@ export async function getUserMissions() {
   });
 
   // Busca ou cria as missões do usuário para o período atual
-  const dailyMissions: any[] = [];
-  const weeklyMissions: any[] = [];
+  const dailyMissions: MissionData[] = [];
+  const weeklyMissions: MissionData[] = [];
+  
+  // Busca config do sistema para saber se o novo sistema está ativo
+  const config = await getSystemConfig();
 
   for (const mission of missions) {
     if (mission.type === "DAILY") {
@@ -135,17 +258,48 @@ export async function getUserMissions() {
         progress = todayTotal < target ? 1 : 0;
       } else if (mission.condition === "no_extras") {
         // Verifica se houve pedidos extras
-        const extraPenalties = await prisma.xpLedger.count({
-          where: {
-            userId: session.user.id,
-            type: "extra_penalty",
-            createdAt: {
-              gte: new Date(`${today}T00:00:00-03:00`),
-              lt: new Date(`${today}T23:59:59-03:00`),
+        // No novo sistema, "extras" são cigarros comprados acima da mesada
+        if (config.dailyXpEnabled) {
+          // No novo sistema: verifica se gastou mais XP do que recebeu de mesada
+          const xpSpentToday = await prisma.xpLedger.aggregate({
+            where: {
+              userId: session.user.id,
+              type: "cig_purchase",
+              createdAt: {
+                gte: new Date(`${today}T00:00:00-03:00`),
+                lt: new Date(`${today}T23:59:59-03:00`),
+              },
             },
-          },
-        });
-        progress = extraPenalties === 0 ? 1 : 0;
+            _sum: { delta: true },
+          });
+          const allowanceToday = await prisma.xpLedger.aggregate({
+            where: {
+              userId: session.user.id,
+              type: "daily_allowance",
+              createdAt: {
+                gte: new Date(`${today}T00:00:00-03:00`),
+                lt: new Date(`${today}T23:59:59-03:00`),
+              },
+            },
+            _sum: { delta: true },
+          });
+          const spent = Math.abs(xpSpentToday._sum.delta?.toNumber() ?? 0);
+          const allowance = allowanceToday._sum.delta?.toNumber() ?? 0;
+          progress = spent <= allowance ? 1 : 0;
+        } else {
+          // Sistema legado: verifica extra_penalty
+          const extraPenalties = await prisma.xpLedger.count({
+            where: {
+              userId: session.user.id,
+              type: "extra_penalty",
+              createdAt: {
+                gte: new Date(`${today}T00:00:00-03:00`),
+                lt: new Date(`${today}T23:59:59-03:00`),
+              },
+            },
+          });
+          progress = extraPenalties === 0 ? 1 : 0;
+        }
         target = 1;
       }
 
@@ -213,6 +367,45 @@ export async function getUserMissions() {
   return { daily: dailyMissions, weekly: weeklyMissions };
 }
 
+export async function getWeekHistory() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return [];
+  }
+
+  const weekDays = getCurrentWeekDays();
+  const today = todayBrasilia();
+  const totalsMap = await getTotalsForDays(weekDays);
+
+  // Busca todos os limits em uma query
+  const dayLimits = await prisma.dayLimit.findMany({
+    where: { date: { in: weekDays } },
+    select: { date: true, limitCigs: true },
+  });
+  const limitsMap = new Map(dayLimits.map((dl) => [dl.date, dl.limitCigs.toNumber()]));
+
+  // Busca o limite padrão
+  const config = await prisma.systemConfig.findFirst();
+  const defaultLimit = config?.defaultDailyLimit?.toNumber() ?? 3.5;
+
+  const dayNames = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+
+  return weekDays
+    .filter((day) => day <= today) // Só mostra dias até hoje
+    .map((day) => {
+      const total = totalsMap.get(day) ?? 0;
+      const limit = limitsMap.get(day) ?? defaultLimit;
+      const date = new Date(day + "T12:00:00");
+      return {
+        dateBr: day.split("-").reverse().join("/"),
+        dayName: dayNames[date.getDay()],
+        total,
+        limit,
+        underLimit: total <= limit,
+      };
+    });
+}
+
 export async function checkAndAwardMissions() {
   const session = await auth();
   if (!session?.user?.id) {
@@ -247,17 +440,48 @@ export async function checkAndAwardMissions() {
       const target = um.mission.targetValue?.toNumber() ?? 3;
       completed = dayTotal < target;
     } else if (um.mission.condition === "no_extras") {
-      const extraPenalties = await prisma.xpLedger.count({
-        where: {
-          userId: session.user.id,
-          type: "extra_penalty",
-          createdAt: {
-            gte: new Date(`${um.endDate}T00:00:00-03:00`),
-            lt: new Date(`${um.endDate}T23:59:59-03:00`),
+      const config = await getSystemConfig();
+      if (config.dailyXpEnabled) {
+        // No novo sistema: verifica se gastou mais XP do que recebeu de mesada
+        const xpSpent = await prisma.xpLedger.aggregate({
+          where: {
+            userId: session.user.id,
+            type: "cig_purchase",
+            createdAt: {
+              gte: new Date(`${um.endDate}T00:00:00-03:00`),
+              lt: new Date(`${um.endDate}T23:59:59-03:00`),
+            },
           },
-        },
-      });
-      completed = extraPenalties === 0;
+          _sum: { delta: true },
+        });
+        const allowance = await prisma.xpLedger.aggregate({
+          where: {
+            userId: session.user.id,
+            type: "daily_allowance",
+            createdAt: {
+              gte: new Date(`${um.endDate}T00:00:00-03:00`),
+              lt: new Date(`${um.endDate}T23:59:59-03:00`),
+            },
+          },
+          _sum: { delta: true },
+        });
+        const spent = Math.abs(xpSpent._sum.delta?.toNumber() ?? 0);
+        const allowanceVal = allowance._sum.delta?.toNumber() ?? 0;
+        completed = spent <= allowanceVal;
+      } else {
+        // Sistema legado
+        const extraPenalties = await prisma.xpLedger.count({
+          where: {
+            userId: session.user.id,
+            type: "extra_penalty",
+            createdAt: {
+              gte: new Date(`${um.endDate}T00:00:00-03:00`),
+              lt: new Date(`${um.endDate}T23:59:59-03:00`),
+            },
+          },
+        });
+        completed = extraPenalties === 0;
+      }
     }
 
     if (completed) {
