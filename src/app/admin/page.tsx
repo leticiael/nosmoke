@@ -178,7 +178,7 @@ export default async function AdminDashboard() {
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {req.amount === "0.5" ? "½ cigarro" : `${req.amount} cigarro`} • {req.reason}
+                      {req.amount === 0.5 ? "½ cigarro" : `${req.amount} cigarro`} • {req.reason1}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
                       {req.dateBr}
