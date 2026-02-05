@@ -283,8 +283,10 @@ export async function getUserMissions() {
             },
             _sum: { delta: true },
           });
-          const spent = Math.abs(xpSpentToday._sum.delta?.toNumber() ?? 0);
-          const allowance = allowanceToday._sum.delta?.toNumber() ?? 0;
+          const spentRaw = xpSpentToday._sum.delta;
+          const spent = Math.abs(spentRaw ? (typeof spentRaw === "number" ? spentRaw : Number(spentRaw)) : 0);
+          const allowanceRaw = allowanceToday._sum.delta;
+          const allowance = allowanceRaw ? (typeof allowanceRaw === "number" ? allowanceRaw : Number(allowanceRaw)) : 0;
           progress = spent <= allowance ? 1 : 0;
         } else {
           // Sistema legado: verifica extra_penalty
@@ -465,8 +467,10 @@ export async function checkAndAwardMissions() {
           },
           _sum: { delta: true },
         });
-        const spent = Math.abs(xpSpent._sum.delta?.toNumber() ?? 0);
-        const allowanceVal = allowance._sum.delta?.toNumber() ?? 0;
+        const spentRaw = xpSpent._sum.delta;
+        const spent = Math.abs(spentRaw ? (typeof spentRaw === "number" ? spentRaw : Number(spentRaw)) : 0);
+        const allowanceRaw = allowance._sum.delta;
+        const allowanceVal = allowanceRaw ? (typeof allowanceRaw === "number" ? allowanceRaw : Number(allowanceRaw)) : 0;
         completed = spent <= allowanceVal;
       } else {
         // Sistema legado
